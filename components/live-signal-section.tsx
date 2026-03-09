@@ -236,7 +236,7 @@ export function LiveSignalSection() {
           {(metrics.length > 0 ? metrics : defaultMetrics).map((metric) => (
             <div key={metric.label} className="panel-shell rounded-[1.6rem] border border-white/10 p-5">
               <p className="eyebrow-label">{metric.label}</p>
-              <p className="mt-3 font-display text-4xl leading-none tracking-tight text-foreground">{metric.value}</p>
+              <p className="mt-3 font-display text-[clamp(1.75rem,4vw,2.25rem)] leading-none tracking-tight text-foreground">{metric.value}</p>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">{metric.note}</p>
             </div>
           ))}
@@ -250,7 +250,7 @@ export function LiveSignalSection() {
                   <Activity className="size-4 text-muted-foreground" />
                   <p className="eyebrow-label">Activity console</p>
                 </div>
-                <h3 className="mt-3 font-display text-4xl leading-none tracking-tight text-foreground">Public activity and remarks</h3>
+                <h3 className="mt-3 font-display text-[clamp(1.5rem,4vw,2.25rem)] leading-none tracking-tight text-foreground">Public activity and remarks</h3>
               </div>
 
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.24em] text-muted-foreground">
@@ -357,7 +357,7 @@ export function LiveSignalSection() {
                       <span className="text-xs uppercase tracking-[0.22em] text-muted-foreground">{selectedItem.relativeTime}</span>
                     </div>
 
-                    <h3 className="relative z-10 mt-5 font-display text-[2.55rem] leading-[0.94] tracking-tight text-foreground">
+                    <h3 className="relative z-10 mt-5 font-display text-[clamp(1.5rem,4vw,2.55rem)] leading-[0.94] tracking-tight text-foreground">
                       {selectedItem.title}
                     </h3>
                     <p className="relative z-10 mt-4 text-sm leading-7 text-muted-foreground">{selectedItem.summary}</p>
@@ -388,7 +388,7 @@ export function LiveSignalSection() {
                     <div className="relative z-10 flex items-center gap-3">
                       <Badge variant="subtle">Monitoring</Badge>
                     </div>
-                    <h3 className="relative z-10 mt-5 font-display text-[2.4rem] leading-[0.94] tracking-tight text-foreground">
+                    <h3 className="relative z-10 mt-5 font-display text-[clamp(1.5rem,4vw,2.4rem)] leading-[0.94] tracking-tight text-foreground">
                       Waiting for the next public signal.
                     </h3>
                     <p className="relative z-10 mt-4 text-sm leading-7 text-muted-foreground">

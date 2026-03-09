@@ -62,7 +62,7 @@ export function SiteNav() {
               Product systems for AI
             </div>
           </div>
-          <nav className="flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-white/8 bg-black/15 p-1 text-sm">
+          <nav className="-mx-1 flex max-w-full items-center gap-1 overflow-x-auto overscroll-x-contain scroll-smooth rounded-full border border-white/8 bg-black/15 p-1 text-sm scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {navigation.map((item) => {
               const isActive = onHomePage && active === item.id;
 

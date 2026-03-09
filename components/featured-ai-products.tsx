@@ -30,7 +30,7 @@ export function FeaturedAiProducts() {
                       </span>
                       <p className="eyebrow-label">{project.shortTitle}</p>
                     </div>
-                    <h3 className="mt-4 max-w-xl font-display text-4xl leading-none tracking-tight text-foreground sm:text-[2.8rem]">
+                    <h3 className="mt-4 max-w-xl font-display text-[clamp(1.5rem,4vw,2.8rem)] leading-none tracking-tight text-foreground">
                       {project.title}
                     </h3>
                   </div>

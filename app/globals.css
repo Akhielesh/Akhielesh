@@ -39,6 +39,7 @@
     position: relative;
     isolation: isolate;
     min-height: 100vh;
+    min-height: 100dvh;
     background:
       radial-gradient(circle at 16% 12%, hsl(var(--warm-glow) / 0.16), transparent 22%),
       radial-gradient(circle at 84% 10%, hsl(var(--cool-glow) / 0.14), transparent 20%),
@@ -48,6 +49,7 @@
     color: hsl(var(--foreground));
     @apply font-sans;
     text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
 
@@ -62,7 +64,10 @@
       linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 88px 88px;
     mask-image: radial-gradient(circle at center, black 35%, transparent 82%);
+    -webkit-mask-image: radial-gradient(circle at center, black 35%, transparent 82%);
     opacity: 0.18;
+    will-change: transform;
+    contain: strict;
   }
 
   body::after {
@@ -77,6 +82,8 @@
       radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.06), transparent 36%);
     filter: blur(28px);
     opacity: 0.78;
+    will-change: transform;
+    contain: strict;
   }
 
   h1,
@@ -102,6 +109,7 @@
       linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.025)),
       rgba(255, 255, 255, 0.02);
     backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
 
   .section-shell {
@@ -132,6 +140,7 @@
       linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
       rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     box-shadow: 0 30px 110px -54px rgba(0, 0, 0, 0.82);
   }
 
@@ -192,7 +201,7 @@
 @supports (content-visibility: auto) {
   .section-shell {
     content-visibility: auto;
-    contain-intrinsic-size: 920px;
+    contain-intrinsic-size: auto 920px;
   }
 
   #hero.section-shell {
@@ -201,10 +210,36 @@
   }
 }
 
+/* Mobile: disable hover transforms, reduce blur for perf */
 @media (max-width: 767px) {
   .interactive-panel:hover {
     transform: none;
     box-shadow: none;
+  }
+
+  .panel-shell {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  body::after {
+    filter: blur(18px);
+  }
+
+  body::before {
+    background-size: 64px 64px;
+  }
+}
+
+/* Touch devices: disable hover lift */
+@media (hover: none) {
+  .interactive-panel:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .interactive-panel:hover::before {
+    opacity: 0;
   }
 }
 
@@ -220,5 +255,14 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* PWA / mobile webapp safe areas */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }

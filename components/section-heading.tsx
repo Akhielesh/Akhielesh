@@ -14,7 +14,7 @@ export function SectionHeading({ eyebrow, title, description, className }: Secti
         <span className="h-px w-12 bg-gradient-to-r from-transparent via-white/40 to-white/10" />
         <p className="eyebrow-label">{eyebrow}</p>
       </div>
-      <h2 className="max-w-3xl font-display text-4xl leading-[0.96] tracking-tight text-foreground sm:text-5xl lg:text-[3.6rem]">
+      <h2 className="max-w-3xl font-display text-[clamp(1.75rem,5vw,3.6rem)] leading-[0.96] tracking-tight text-foreground">
         {title}
       </h2>
       <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">{description}</p>

@@ -20,7 +20,7 @@ export function WritingSection() {
             <div className="flex flex-col justify-between gap-6">
               <div>
                 <Badge className="w-fit">Writing soon</Badge>
-                <h3 className="mt-5 font-display text-4xl leading-none tracking-tight text-foreground sm:text-[3rem]">
+                <h3 className="mt-5 font-display text-[clamp(1.5rem,4vw,3rem)] leading-none tracking-tight text-foreground">
                   The publishing cadence comes later. The editorial system is already in place.
                 </h3>
                 <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground">

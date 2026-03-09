@@ -24,7 +24,7 @@ export function DataBackboneSection() {
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
-                <h3 className="mt-5 font-display text-4xl leading-none tracking-tight text-foreground">{item.value}</h3>
+                <h3 className="mt-5 font-display text-[clamp(1.75rem,4vw,2.25rem)] leading-none tracking-tight text-foreground">{item.value}</h3>
                 <p className="mt-4 text-sm leading-7 text-muted-foreground">{item.description}</p>
               </article>
             </Reveal>
