@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowUpRight, Mail } from "lucide-react";
 
@@ -5,10 +7,13 @@ import { brandTest, contactLinks } from "@/content/site";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { Badge } from "@/components/ui/badge";
+import { ShineCard } from "@/components/animate/shine-card";
+import { FloatingParticles } from "@/components/animate/floating-particles";
+import { StaggerChildren, StaggerItem } from "@/components/animate/stagger-children";
 
 export function ContactSection() {
   return (
-    <section id="contact" className="section-shell">
+    <section id="contact" className="section-shell relative">
       <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
         <Reveal variant="soft">
           <SectionHeading
@@ -31,22 +36,24 @@ export function ContactSection() {
             </div>
           </Reveal>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            {contactLinks.map((item, index) => (
-              <Reveal key={item.label} delay={index * 0.05} variant="pop">
+          <StaggerChildren className="grid gap-3 sm:grid-cols-2">
+            {contactLinks.map((item) => (
+              <StaggerItem key={item.label}>
                 {item.href ? (
-                  <Link
-                    href={item.href}
-                    target={item.href.startsWith("http") ? "_blank" : undefined}
-                    rel={item.href.startsWith("http") ? "noreferrer" : undefined}
-                    className="panel-shell interactive-panel block rounded-[1.5rem] border border-white/10 p-5"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <h3 className="text-lg font-medium text-foreground">{item.label}</h3>
-                      <ArrowUpRight className="size-4 text-muted-foreground" />
-                    </div>
-                    <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.note}</p>
-                  </Link>
+                  <ShineCard className="panel-shell interactive-panel gradient-border block rounded-[1.5rem] border border-white/10 p-5">
+                    <Link
+                      href={item.href}
+                      target={item.href.startsWith("http") ? "_blank" : undefined}
+                      rel={item.href.startsWith("http") ? "noreferrer" : undefined}
+                      className="block"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <h3 className="text-lg font-medium text-foreground">{item.label}</h3>
+                        <ArrowUpRight className="size-4 text-muted-foreground" />
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.note}</p>
+                    </Link>
+                  </ShineCard>
                 ) : (
                   <div className="panel-shell rounded-[1.5rem] border border-dashed border-white/12 p-5">
                     <div className="flex items-center justify-between gap-4">
@@ -56,9 +63,9 @@ export function ContactSection() {
                     <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.note}</p>
                   </div>
                 )}
-              </Reveal>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerChildren>
         </div>
       </div>
     </section>

@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowDownRight, MoveRight } from "lucide-react";
 
 import { capabilityGroups, proofChips, projectCaseStudies, roleSubtitle, roleTitle, siteName } from "@/content/site";
@@ -5,6 +7,11 @@ import { Reveal } from "@/components/reveal";
 import { HeroProjectPanel } from "@/components/hero-project-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { GradientText } from "@/components/animate/gradient-text";
+import { TypingText } from "@/components/animate/typing-text";
+import { FloatingParticles } from "@/components/animate/floating-particles";
+import { StaggerChildren, StaggerItem } from "@/components/animate/stagger-children";
+import { ShineCard } from "@/components/animate/shine-card";
 
 export function HeroSection() {
   const signalCards = [
@@ -15,6 +22,8 @@ export function HeroSection() {
 
   return (
     <section id="hero" className="section-shell relative border-b border-white/8">
+      <FloatingParticles count={20} />
+
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[-6rem] top-10 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(246,186,116,0.22),_transparent_70%)] blur-3xl" />
         <div className="absolute right-[-4rem] top-20 h-80 w-80 rounded-full bg-[radial-gradient(circle,_rgba(118,183,201,0.18),_transparent_72%)] blur-3xl" />
@@ -34,9 +43,12 @@ export function HeroSection() {
           <div className="space-y-5">
             <p className="eyebrow-label">{roleTitle}</p>
             <h1 className="max-w-4xl font-display text-[clamp(2.4rem,7vw,5.6rem)] leading-[0.9] tracking-tight text-foreground">
-              Complex AI workflows deserve interfaces with taste, pacing, and structure.
+              <GradientText>Complex AI workflows</GradientText>{" "}
+              deserve interfaces with taste, pacing, and structure.
             </h1>
-            <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">{roleSubtitle}</p>
+            <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+              <TypingText text={roleSubtitle} speed={25} delay={800} />
+            </p>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -54,20 +66,24 @@ export function HeroSection() {
             </Button>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_240px]">
+          <StaggerChildren className="grid gap-3 sm:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_240px]">
             {signalCards.map((item) => (
-              <div key={item.label} className="panel-shell rounded-[1.5rem] border border-white/10 p-5">
-                <p className="eyebrow-label">{item.label}</p>
-                <p className="mt-3 font-display text-3xl leading-none tracking-tight text-foreground">{item.value}</p>
-              </div>
+              <StaggerItem key={item.label}>
+                <ShineCard className="panel-shell rounded-[1.5rem] border border-white/10 p-5">
+                  <p className="eyebrow-label">{item.label}</p>
+                  <p className="mt-3 font-display text-3xl leading-none tracking-tight text-foreground">{item.value}</p>
+                </ShineCard>
+              </StaggerItem>
             ))}
-            <div className="panel-shell rounded-[1.5rem] border border-white/10 p-5 sm:col-span-3 xl:col-span-1">
-              <p className="eyebrow-label">Operating lens</p>
-              <p className="mt-3 text-sm leading-6 text-foreground/82">
-                Ship AI features as product systems: visible inputs, intentional transitions, and interfaces that explain what the machine is doing.
-              </p>
-            </div>
-          </div>
+            <StaggerItem>
+              <ShineCard className="panel-shell rounded-[1.5rem] border border-white/10 p-5 sm:col-span-3 xl:col-span-1">
+                <p className="eyebrow-label">Operating lens</p>
+                <p className="mt-3 text-sm leading-6 text-foreground/82">
+                  Ship AI features as product systems: visible inputs, intentional transitions, and interfaces that explain what the machine is doing.
+                </p>
+              </ShineCard>
+            </StaggerItem>
+          </StaggerChildren>
 
           <div className="flex flex-wrap gap-2">
             {proofChips.map((chip) => (

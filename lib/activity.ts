@@ -362,6 +362,61 @@ function buildMetrics(profile: GitHubProfile | null, repos: GitHubRepo[], items:
   ];
 }
 
+function aggregateGitHubActivity(items: SignalFeedItem[]): SignalFeedItem[] {
+  const remarks = items.filter((item) => item.source !== "GitHub");
+  const github = items.filter((item) => item.source === "GitHub");
+
+  const repoMap = new Map<string, { items: SignalFeedItem[]; latestTimestamp: string }>();
+
+  for (const item of github) {
+    const repoMatch = item.title.match(/to (.+)$/) ?? item.title.match(/in (.+)$/);
+    const repoKey = repoMatch?.[1]?.trim() ?? "other";
+    const existing = repoMap.get(repoKey);
+
+    if (existing) {
+      existing.items.push(item);
+      if (item.timestamp > existing.latestTimestamp) {
+        existing.latestTimestamp = item.timestamp;
+      }
+    } else {
+      repoMap.set(repoKey, { items: [item], latestTimestamp: item.timestamp });
+    }
+  }
+
+  const aggregated: SignalFeedItem[] = [];
+
+  for (const [repo, { items: repoItems, latestTimestamp }] of repoMap) {
+    if (repoItems.length === 1) {
+      aggregated.push(repoItems[0]);
+      continue;
+    }
+
+    const pushCount = repoItems.filter((i) => i.title.startsWith("Pushed")).length;
+    const prCount = repoItems.filter((i) => i.title.includes("pull request")).length;
+    const parts: string[] = [];
+
+    if (pushCount > 0) parts.push(`${pushCount} push${pushCount > 1 ? "es" : ""}`);
+    if (prCount > 0) parts.push(`${prCount} PR update${prCount > 1 ? "s" : ""}`);
+
+    const otherCount = repoItems.length - pushCount - prCount;
+    if (otherCount > 0) parts.push(`${otherCount} other action${otherCount > 1 ? "s" : ""}`);
+
+    aggregated.push({
+      id: repoItems[0].id,
+      source: "GitHub",
+      title: `${repoItems.length} updates to ${repo}`,
+      summary: parts.join(", ") + ` across recent activity in this repo.`,
+      href: repoItems[0].href,
+      timestamp: latestTimestamp,
+      relativeTime: formatRelativeTime(latestTimestamp)
+    });
+  }
+
+  return [...aggregated, ...remarks].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+}
+
 export async function fetchLiveSignalSnapshot(signal: AbortSignal): Promise<SignalSnapshot> {
   const [profileResult, reposResult, githubResult, remarksResult, linkedInResult] = await Promise.allSettled([
     fetchGitHubProfile(signal),
@@ -376,9 +431,11 @@ export async function fetchLiveSignalSnapshot(signal: AbortSignal): Promise<Sign
     .flatMap((result) => (result.status === "fulfilled" ? result.value : []))
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
+  const aggregated = aggregateGitHubActivity(items);
+
   return {
-    items: items.slice(0, 10),
-    metrics: buildMetrics(profileResult.status === "fulfilled" ? profileResult.value : null, repos, items),
+    items: aggregated.slice(0, 8),
+    metrics: buildMetrics(profileResult.status === "fulfilled" ? profileResult.value : null, repos, aggregated),
     fetchedAt: new Date().toISOString()
   };
 }
