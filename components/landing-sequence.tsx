@@ -97,7 +97,7 @@ export function LandingSequence() {
           animate={phase === "closing" ? { opacity: 0 } : { opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: EXIT_DURATION_MS / 1000, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed inset-0 z-[90] flex items-center justify-center overflow-hidden bg-[rgba(10,13,18,0.82)] px-5"
+          className="fixed inset-0 z-[90] flex items-center justify-center overflow-hidden bg-[hsl(220_18%_6%/0.97)] px-5"
         >
           <div className="absolute inset-0">
             <div className="absolute left-[12%] top-[18%] h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(246,186,116,0.18),_transparent_68%)] blur-3xl" />
@@ -105,7 +105,7 @@ export function LandingSequence() {
             <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-white/12 to-transparent" />
           </div>
 
-          <div className="panel-shell relative w-full max-w-5xl rounded-[2.6rem] border border-white/10 px-6 py-14 sm:px-10 sm:py-20">
+          <div className="relative w-full max-w-5xl rounded-[2.6rem] border border-white/[0.12] bg-[hsl(220_18%_8%/0.95)] px-6 py-14 shadow-[0_30px_110px_-54px_rgba(0,0,0,0.82)] backdrop-blur-2xl sm:px-10 sm:py-20">
             <div className="mb-6 text-center">
               <p className="eyebrow-label">Entering the studio</p>
             </div>

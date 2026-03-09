@@ -9,6 +9,9 @@ import { fetchLiveSignalSnapshot, type SignalFeedItem, type SignalMetric } from 
 import { cn } from "@/lib/utils";
 import { SectionHeading } from "@/components/section-heading";
 import { Badge } from "@/components/ui/badge";
+import { ShineCard } from "@/components/animate/shine-card";
+import { CountingNumber } from "@/components/animate/counting-number";
+import { StaggerChildren, StaggerItem } from "@/components/animate/stagger-children";
 
 type SignalFilter = "All" | SignalFeedItem["source"];
 
@@ -228,19 +231,28 @@ export function LiveSignalSection() {
       <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
         <SectionHeading
           eyebrow="Live Signal"
-          title="A factual dashboard for work shipped in public."
-          description="This section now reads from public GitHub profile data, public GitHub activity, the guestbook, and an optional LinkedIn feed. The goal is to show live work surface area, not decorative motion pretending to be proof."
+          title="Real-time activity from GitHub, guestbook, and linked sources."
+          description="Aggregated public activity — pushes, PRs, and remarks — summarized per project so the signal stays meaningful."
         />
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {(metrics.length > 0 ? metrics : defaultMetrics).map((metric) => (
-            <div key={metric.label} className="panel-shell rounded-[1.6rem] border border-white/10 p-5">
-              <p className="eyebrow-label">{metric.label}</p>
-              <p className="mt-3 font-display text-[clamp(1.75rem,4vw,2.25rem)] leading-none tracking-tight text-foreground">{metric.value}</p>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">{metric.note}</p>
-            </div>
-          ))}
-        </div>
+        <StaggerChildren className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {(metrics.length > 0 ? metrics : defaultMetrics).map((metric) => {
+            const numericValue = parseInt(metric.value, 10);
+            const isNumeric = !isNaN(numericValue) && metric.value !== "--";
+
+            return (
+              <StaggerItem key={metric.label}>
+                <ShineCard className="panel-shell rounded-[1.6rem] border border-white/10 p-5">
+                  <p className="eyebrow-label">{metric.label}</p>
+                  <p className="mt-3 font-display text-[clamp(1.75rem,4vw,2.25rem)] leading-none tracking-tight text-foreground">
+                    {isNumeric ? <CountingNumber value={numericValue} /> : metric.value}
+                  </p>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{metric.note}</p>
+                </ShineCard>
+              </StaggerItem>
+            );
+          })}
+        </StaggerChildren>
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
           <div className="panel-shell rounded-[2.2rem] border border-white/10 p-6 sm:p-7">
@@ -442,12 +454,21 @@ export function LiveSignalSection() {
                 })}
               </div>
 
-              <div className="mt-5 rounded-[1.4rem] border border-white/8 bg-white/[0.03] p-4">
-                <p className="eyebrow-label">Data provenance</p>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  GitHub is live today. Remarks are live through the guestbook. LinkedIn becomes live once the public feed endpoint is provided.
-                </p>
+              <Link
+              href="/remarks/"
+              className="interactive-panel mt-5 block rounded-[1.4rem] border border-white/[0.12] bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <MessageSquareMore className="size-4 text-foreground" />
+                  <p className="text-sm font-medium text-foreground">Leave a remark</p>
+                </div>
+                <ArrowUpRight className="size-4 text-muted-foreground" />
               </div>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Share feedback, thoughts, or notes about any project in the public guestbook.
+              </p>
+            </Link>
             </div>
           </div>
         </div>

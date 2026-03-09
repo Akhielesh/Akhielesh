@@ -24,19 +24,31 @@ export function SiteNav() {
       return;
     }
 
+    const ratioMap = new Map<string, number>();
+
     const observer = new IntersectionObserver(
       (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        for (const entry of entries) {
+          ratioMap.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0);
+        }
 
-        if (visible?.target.id) {
-          setActive(visible.target.id);
+        let bestId = "";
+        let bestRatio = 0;
+
+        for (const [id, ratio] of ratioMap) {
+          if (ratio > bestRatio) {
+            bestRatio = ratio;
+            bestId = id;
+          }
+        }
+
+        if (bestId) {
+          setActive(bestId);
         }
       },
       {
-        rootMargin: "-35% 0px -45% 0px",
-        threshold: [0.15, 0.35, 0.6]
+        rootMargin: "-20% 0px -30% 0px",
+        threshold: [0, 0.1, 0.2, 0.3, 0.5, 0.7, 1]
       }
     );
 
@@ -47,7 +59,7 @@ export function SiteNav() {
   return (
     <header className="sticky top-0 z-50 px-4 pt-4 sm:px-6">
       <div className="mx-auto max-w-7xl">
-        <div className="panel-shell flex flex-col gap-4 rounded-[2rem] border border-white/10 px-4 py-4 shadow-panel sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="flex flex-col gap-4 rounded-[2rem] border border-white/[0.12] bg-[hsl(220_18%_7%/0.92)] px-4 py-4 shadow-panel backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div className="flex items-center justify-between gap-4">
             {onHomePage ? (
               <a href="#hero" className="font-mono text-xs uppercase tracking-[0.34em] text-foreground/88">
@@ -62,7 +74,7 @@ export function SiteNav() {
               Product systems for AI
             </div>
           </div>
-          <nav className="-mx-1 flex max-w-full items-center gap-1 overflow-x-auto overscroll-x-contain scroll-smooth rounded-full border border-white/8 bg-black/15 p-1 text-sm scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <nav className="-mx-1 flex max-w-full items-center gap-1 overflow-x-auto overscroll-x-contain scroll-smooth rounded-full border border-white/[0.08] bg-white/[0.04] p-1 text-sm scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {navigation.map((item) => {
               const isActive = onHomePage && active === item.id;
 
@@ -85,7 +97,16 @@ export function SiteNav() {
               );
 
               return onHomePage ? (
-                <a key={item.id} href={`#${item.id}`} aria-current={isActive ? "page" : undefined} className={className}>
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  aria-current={isActive ? "page" : undefined}
+                  className={className}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById(item.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                >
                   {content}
                 </a>
               ) : (

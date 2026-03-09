@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
@@ -5,6 +7,7 @@ import { projectCaseStudies } from "@/content/site";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { Badge } from "@/components/ui/badge";
+import { ShineCard } from "@/components/animate/shine-card";
 
 export function FeaturedAiProducts() {
   return (
@@ -21,7 +24,7 @@ export function FeaturedAiProducts() {
         <div className="mt-14 grid gap-6 lg:grid-cols-2">
           {projectCaseStudies.map((project, index) => (
             <Reveal key={project.slug} delay={index * 0.08} variant="pop">
-              <article className="panel-shell interactive-panel flex h-full flex-col rounded-[2.2rem] border border-white/10 p-6 shadow-panel sm:p-7">
+              <ShineCard className="panel-shell interactive-panel flex h-full flex-col rounded-[2.2rem] border border-white/10 p-6 shadow-panel sm:p-7">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-3">
@@ -77,7 +80,7 @@ export function FeaturedAiProducts() {
                   Read case study
                   <ArrowUpRight className="size-4" />
                 </Link>
-              </article>
+              </ShineCard>
             </Reveal>
           ))}
         </div>

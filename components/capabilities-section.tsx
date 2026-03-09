@@ -1,6 +1,9 @@
+"use client";
+
 import { capabilityGroups } from "@/content/site";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
+import { ShineCard } from "@/components/animate/shine-card";
 
 export function CapabilitiesSection() {
   return (
@@ -22,7 +25,7 @@ export function CapabilitiesSection() {
               variant="pop"
               className={index === 0 ? "lg:col-span-7" : index === 3 ? "lg:col-span-7" : "lg:col-span-5"}
             >
-              <article className="panel-shell interactive-panel h-full rounded-[2rem] border border-white/10 p-6 sm:p-7">
+              <ShineCard className="panel-shell interactive-panel h-full rounded-[2rem] border border-white/10 p-6 sm:p-7">
                 <div className="flex items-start justify-between gap-4">
                   <p className="eyebrow-label">{group.eyebrow}</p>
                   <span className="flex size-9 items-center justify-center rounded-full border border-white/10 bg-black/20 font-mono text-[11px] text-muted-foreground">
@@ -45,7 +48,7 @@ export function CapabilitiesSection() {
                     </li>
                   ))}
                 </ul>
-              </article>
+              </ShineCard>
             </Reveal>
           ))}
         </div>
