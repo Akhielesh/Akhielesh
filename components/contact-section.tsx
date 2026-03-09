@@ -13,8 +13,8 @@ export function ContactSection() {
         <Reveal>
           <SectionHeading
             eyebrow="Links / Contact"
-            title="Clean contact structure now, real endpoints later."
-            description="The content model is already wired for LinkedIn, GitHub, resume, demos, and direct contact. Missing links are shown honestly instead of rendered as broken calls to action."
+            title="Public profile, demos, and direct contact in one place."
+            description="The links section now points to the real public profiles, live demos, and direct email route that support the portfolio."
           />
         </Reveal>
 
@@ -25,7 +25,7 @@ export function ContactSection() {
               <p className="mt-5 max-w-xl font-display text-4xl leading-none tracking-tight text-foreground">{brandTest}</p>
               <div className="mt-8 flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="size-4" />
-                Ready to plug in public links and a direct contact route.
+                Public links and live demos are wired in and ready to use.
               </div>
             </div>
           </Reveal>
@@ -34,7 +34,12 @@ export function ContactSection() {
             {contactLinks.map((item, index) => (
               <Reveal key={item.label} delay={index * 0.05}>
                 {item.href ? (
-                  <Link href={item.href} className="surface block rounded-[1.5rem] border border-white/10 p-5 transition-colors hover:border-white/25">
+                  <Link
+                    href={item.href}
+                    target={item.href.startsWith("http") ? "_blank" : undefined}
+                    rel={item.href.startsWith("http") ? "noreferrer" : undefined}
+                    className="surface block rounded-[1.5rem] border border-white/10 p-5 transition-colors hover:border-white/25"
+                  >
                     <div className="flex items-center justify-between gap-4">
                       <h3 className="text-lg font-medium text-foreground">{item.label}</h3>
                       <ArrowUpRight className="size-4 text-muted-foreground" />

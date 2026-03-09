@@ -489,33 +489,33 @@ export const upcomingTopics: UpcomingTopic[] = [
 export const contactLinks: ContactLink[] = [
   {
     label: "LinkedIn",
-    href: null,
-    note: "Professional profile slot for role history and current focus.",
-    availability: "Add public URL"
+    href: "https://www.linkedin.com/in/akhielesh-srirangam-a2110471/",
+    note: "Professional profile with role history, current focus, and public experience context.",
+    availability: "Public profile"
   },
   {
     label: "GitHub",
-    href: null,
-    note: "Repository and build trail for product work and experiments.",
-    availability: "Add public URL"
-  },
-  {
-    label: "Resume",
-    href: null,
-    note: "Compact version of experience, projects, and technical depth.",
-    availability: "Add file or URL"
+    href: "https://github.com/Akhielesh",
+    note: "Repository trail for shipped work, experiments, and the portfolio source itself.",
+    availability: "Public profile"
   },
   {
     label: "Email",
-    href: null,
+    href: "mailto:akhieleshsrirangam@gmail.com",
     note: "Direct contact point for product, AI, and platform conversations.",
-    availability: "Add mailto link"
+    availability: "Direct contact"
   },
   {
-    label: "Live demos",
-    href: null,
-    note: "Optional demo links for products when they are ready to share publicly.",
-    availability: "Add selected links"
+    label: "Atlas demo",
+    href: "https://atlasd-production.up.railway.app",
+    note: "Live product entry point for the Atlas AI search terminal case study.",
+    availability: "Live demo"
+  },
+  {
+    label: "ComicForge demo",
+    href: "https://comic2.pages.dev/",
+    note: "Live product entry point for the multi-stage AI comic generation workflow.",
+    availability: "Live demo"
   }
 ];
 
