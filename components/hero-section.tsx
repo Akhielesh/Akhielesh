@@ -20,8 +20,8 @@ export function HeroSection() {
         <div className="absolute right-[-4rem] top-20 h-80 w-80 rounded-full bg-[radial-gradient(circle,_rgba(118,183,201,0.18),_transparent_72%)] blur-3xl" />
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-10 sm:px-8 lg:grid-cols-[minmax(0,1.02fr)_minmax(320px,0.98fr)] lg:items-start lg:pb-28 lg:pt-16">
-        <Reveal variant="soft" className="space-y-10">
+      <div className="mx-auto max-w-7xl px-5 pb-20 pt-10 sm:px-8 lg:pb-28 lg:pt-16">
+        <Reveal variant="soft" className="space-y-8 sm:space-y-10">
           <div className="inline-flex flex-wrap items-center gap-3">
             <Badge variant="accent" className="w-fit">
               {siteName}
@@ -31,30 +31,12 @@ export function HeroSection() {
             </Badge>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px]">
-            <div className="space-y-5">
-              <p className="eyebrow-label">{roleTitle}</p>
-              <h1 className="max-w-4xl font-display text-6xl leading-[0.9] tracking-tight text-foreground sm:text-7xl lg:text-[5.6rem]">
-                Complex AI workflows deserve interfaces with taste, pacing, and structure.
-              </h1>
-              <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">{roleSubtitle}</p>
-            </div>
-
-            <div className="panel-shell rounded-[1.8rem] border border-white/10 p-5">
-              <p className="eyebrow-label">Operating lens</p>
-              <p className="mt-4 text-sm leading-7 text-foreground/82">
-                Ship AI features as product systems: visible inputs, intentional transitions, and interfaces that explain what the
-                machine is doing.
-              </p>
-              <div className="soft-divider mt-5" />
-              <div className="mt-5 space-y-2.5">
-                {proofChips.map((chip) => (
-                  <div key={chip} className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-2 text-sm text-foreground/78">
-                    {chip}
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="space-y-5">
+            <p className="eyebrow-label">{roleTitle}</p>
+            <h1 className="max-w-4xl font-display text-[clamp(2.4rem,7vw,5.6rem)] leading-[0.9] tracking-tight text-foreground">
+              Complex AI workflows deserve interfaces with taste, pacing, and structure.
+            </h1>
+            <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">{roleSubtitle}</p>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -72,17 +54,31 @@ export function HeroSection() {
             </Button>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_240px]">
             {signalCards.map((item) => (
               <div key={item.label} className="panel-shell rounded-[1.5rem] border border-white/10 p-5">
                 <p className="eyebrow-label">{item.label}</p>
                 <p className="mt-3 font-display text-3xl leading-none tracking-tight text-foreground">{item.value}</p>
               </div>
             ))}
+            <div className="panel-shell rounded-[1.5rem] border border-white/10 p-5 sm:col-span-3 xl:col-span-1">
+              <p className="eyebrow-label">Operating lens</p>
+              <p className="mt-3 text-sm leading-6 text-foreground/82">
+                Ship AI features as product systems: visible inputs, intentional transitions, and interfaces that explain what the machine is doing.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {proofChips.map((chip) => (
+              <div key={chip} className="rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-sm text-foreground/78">
+                {chip}
+              </div>
+            ))}
           </div>
         </Reveal>
 
-        <Reveal delay={0.08} variant="pop" className="lg:pt-6">
+        <Reveal delay={0.08} variant="pop" className="mt-12 lg:mt-16">
           <HeroProjectPanel projects={projectCaseStudies} />
         </Reveal>
       </div>

@@ -8,12 +8,12 @@ import { introTitles, siteName } from "@/content/site";
 import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "akhielesh-entry-seen";
-const LETTERS_PHASE_MS = 2600;
-const TITLES_START_MS = 3400;
-const TITLE_STEP_MS = 1450;
-const CONTINUE_AFTER_MS = 7600;
-const ENTRY_DURATION_MS = 12800;
-const EXIT_DURATION_MS = 560;
+const LETTERS_PHASE_MS = 2000;
+const TITLES_START_MS = 2600;
+const TITLE_STEP_MS = 1200;
+const CONTINUE_AFTER_MS = 4200;
+const ENTRY_DURATION_MS = 9600;
+const EXIT_DURATION_MS = 420;
 
 export function LandingSequence() {
   const reduceMotion = useReducedMotion();
@@ -118,8 +118,8 @@ export function LandingSequence() {
                       key={`${letter}-${index}`}
                       initial={{ opacity: 0, y: -180, rotate: -8, scale: 0.92 }}
                       animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
-                      transition={{ delay: index * 0.1, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                      className="font-display text-5xl leading-none tracking-[0.08em] text-foreground sm:text-7xl lg:text-[6rem]"
+                      transition={{ delay: index * 0.07, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                      className="font-display text-[clamp(2.5rem,8vw,6rem)] leading-none tracking-[0.08em] text-foreground"
                     >
                       {letter}
                     </motion.span>
@@ -131,7 +131,7 @@ export function LandingSequence() {
                     initial={{ opacity: 0, scale: 0.96, y: 18 }}
                     animate={{ opacity: 0.1, scale: 1, y: 0 }}
                     transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-                    className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 font-display text-[3.4rem] tracking-[0.18em] text-white/10 sm:text-[5.8rem] lg:text-[7.2rem]"
+                    className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 font-display text-[clamp(2.5rem,9vw,7.2rem)] tracking-[0.18em] text-white/10"
                   >
                     {siteName.toUpperCase()}
                   </motion.div>
@@ -143,7 +143,7 @@ export function LandingSequence() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -18, scale: 0.99 }}
                       transition={{ duration: 0.58, ease: [0.16, 1, 0.3, 1] }}
-                      className="mt-6 max-w-3xl font-display text-5xl leading-[0.92] tracking-tight text-foreground sm:text-7xl"
+                      className="mt-6 max-w-3xl font-display text-[clamp(2rem,6vw,4.5rem)] leading-[0.92] tracking-tight text-foreground"
                     >
                       {introTitles[titleIndex]}
                     </motion.div>

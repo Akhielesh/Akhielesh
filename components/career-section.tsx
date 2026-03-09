@@ -23,7 +23,7 @@ export function CareerSection() {
                 </span>
                 <div>
                   <p className="eyebrow-label">{phase.title}</p>
-                  <p className="mt-3 font-display text-3xl leading-none tracking-tight text-foreground">{phase.period}</p>
+                  <p className="mt-3 font-display text-[clamp(1.5rem,3.5vw,1.875rem)] leading-none tracking-tight text-foreground">{phase.period}</p>
                 </div>
                 <div>
                   <p className="max-w-3xl text-base leading-7 text-muted-foreground">{phase.summary}</p>

@@ -22,7 +22,7 @@ export function ContactSection() {
           <Reveal variant="pop">
             <div className="panel-shell rounded-[2.2rem] border border-white/10 p-6 sm:p-7">
               <Badge className="w-fit">Brand test</Badge>
-              <p className="mt-5 max-w-xl font-display text-4xl leading-none tracking-tight text-foreground sm:text-[3rem]">{brandTest}</p>
+              <p className="mt-5 max-w-xl font-display text-[clamp(1.5rem,4vw,3rem)] leading-none tracking-tight text-foreground">{brandTest}</p>
               <div className="soft-divider mt-8" />
               <div className="mt-8 flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="size-4" />

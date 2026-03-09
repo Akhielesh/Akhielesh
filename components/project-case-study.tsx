@@ -28,7 +28,7 @@ export function ProjectCaseStudyPage({ project }: ProjectCaseStudyProps) {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_320px] lg:items-end">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.34em] text-muted-foreground">{project.kicker}</p>
-            <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.94] tracking-tight text-foreground sm:text-6xl">
+            <h1 className="mt-4 max-w-4xl font-display text-[clamp(2rem,5.5vw,3.75rem)] leading-[0.94] tracking-tight text-foreground">
               {project.title}
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">{project.heroStatement}</p>
@@ -70,7 +70,7 @@ export function ProjectCaseStudyPage({ project }: ProjectCaseStudyProps) {
             </Link>
           </div>
 
-          <div className="mt-8 grid gap-4 lg:grid-cols-5">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {project.architecture.map((step, index) => (
               <article key={step.label} className="rounded-[1.5rem] border border-white/8 bg-black/20 p-4">
                 <div className="flex items-center gap-3">

@@ -29,7 +29,7 @@ export function CapabilitiesSection() {
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
-                <h3 className="mt-5 max-w-xl font-display text-3xl leading-none tracking-tight text-foreground sm:text-[2.35rem]">
+                <h3 className="mt-5 max-w-xl font-display text-[clamp(1.5rem,3.5vw,2.35rem)] leading-none tracking-tight text-foreground">
                   {group.title}
                 </h3>
                 <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">{group.description}</p>
