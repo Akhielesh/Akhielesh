@@ -1,29 +1,9 @@
 import type { Metadata } from "next";
 import { MotionConfig } from "motion/react";
-import { IBM_Plex_Mono, IBM_Plex_Sans, Instrument_Serif } from "next/font/google";
-
 import { roleTitle, siteDescription, siteName, siteUrl } from "@/content/site";
 import { SiteNav } from "@/components/site-nav";
 
 import "./globals.css";
-
-const display = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-display"
-});
-
-const sans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-sans"
-});
-
-const mono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-mono"
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -47,7 +27,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="antialiased">
         <MotionConfig reducedMotion="user">
           <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
