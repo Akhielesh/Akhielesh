@@ -36,9 +36,9 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)"
       },
       fontFamily: {
-        display: ["var(--font-display)"],
-        sans: ["var(--font-sans)"],
-        mono: ["var(--font-mono)"]
+        display: ["'Instrument Serif'", "Georgia", "'Times New Roman'", "serif"],
+        sans: ["'IBM Plex Sans'", "system-ui", "-apple-system", "sans-serif"],
+        mono: ["'IBM Plex Mono'", "ui-monospace", "'Cascadia Code'", "monospace"]
       },
       boxShadow: {
         panel: "0 24px 80px -36px rgba(0, 0, 0, 0.55)"

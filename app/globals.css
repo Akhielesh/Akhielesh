@@ -46,7 +46,7 @@
       linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
       hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: var(--font-sans), sans-serif;
+    @apply font-sans;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
   }
