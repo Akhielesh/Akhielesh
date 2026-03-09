@@ -1,0 +1,82 @@
+name: Deploy portfolio to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Derive GitHub Pages URL and base path
+        id: pages-url
+        env:
+          PAGES_BASE_PATH: ${{ vars.PAGES_BASE_PATH }}
+          PAGES_SITE_URL: ${{ vars.PAGES_SITE_URL }}
+        shell: bash
+        run: |
+          repo_name="${GITHUB_REPOSITORY#*/}"
+          owner="${GITHUB_REPOSITORY_OWNER}"
+
+          if [[ -n "${PAGES_SITE_URL}" ]]; then
+            echo "base_path=${PAGES_BASE_PATH}" >> "$GITHUB_OUTPUT"
+            echo "site_url=${PAGES_SITE_URL%/}" >> "$GITHUB_OUTPUT"
+          elif [[ "$repo_name" == "${owner}.github.io" ]]; then
+            echo "base_path=" >> "$GITHUB_OUTPUT"
+            echo "site_url=https://${owner}.github.io" >> "$GITHUB_OUTPUT"
+          else
+            echo "base_path=/$repo_name" >> "$GITHUB_OUTPUT"
+            echo "site_url=https://${owner}.github.io/$repo_name" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build static export
+        env:
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages-url.outputs.base_path }}
+          NEXT_PUBLIC_SITE_URL: ${{ steps.pages-url.outputs.site_url }}
+        run: pnpm build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./out
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

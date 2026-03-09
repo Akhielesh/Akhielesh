@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 5%;
+    --foreground: 42 33% 96%;
+    --card: 0 0% 8%;
+    --card-foreground: 42 33% 96%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 42 33% 96%;
+    --primary: 42 33% 96%;
+    --primary-foreground: 0 0% 6%;
+    --secondary: 0 0% 9%;
+    --secondary-foreground: 42 20% 92%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 40 11% 70%;
+    --accent: 0 0% 11%;
+    --accent-foreground: 42 33% 96%;
+    --border: 0 0% 100% / 0.12;
+    --input: 0 0% 100% / 0.14;
+    --ring: 42 33% 96%;
+    --radius: 1.1rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(255, 255, 255, 0.1), transparent 32%),
+      radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 26%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+      hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans), sans-serif;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: rgba(255, 255, 255, 0.16);
+    color: hsl(var(--foreground));
+  }
+}
+
+@layer components {
+  .surface {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+      rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(18px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

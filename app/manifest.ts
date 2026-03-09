@@ -1,0 +1,26 @@
+import type { MetadataRoute } from "next";
+
+import { roleTitle, siteDescription, siteName } from "@/content/site";
+
+export const dynamic = "force-static";
+
+export default function manifest(): MetadataRoute.Manifest {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+  return {
+    name: `${siteName} | ${roleTitle}`,
+    short_name: siteName,
+    description: siteDescription,
+    start_url: basePath || "/",
+    display: "standalone",
+    background_color: "#080808",
+    theme_color: "#080808",
+    icons: [
+      {
+        src: `${basePath}/icon.svg`,
+        sizes: "any",
+        type: "image/svg+xml"
+      }
+    ]
+  };
+}
