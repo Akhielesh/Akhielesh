@@ -4,6 +4,7 @@ export type SectionId =
   | "systems-capabilities"
   | "data-backbone"
   | "career"
+  | "live-signal"
   | "writing"
   | "contact";
 
@@ -83,11 +84,24 @@ export const siteName = "Akhielesh";
 export const roleTitle = "AI Product Engineer";
 export const roleSubtitle =
   "Building multi-model AI products, agentic workflows, connectors, and data-rich user experiences.";
+export const introTitles = [
+  "AI Product Developer",
+  "AI Engineer",
+  "AI Developer",
+  "AI Researcher",
+  "AI Everything"
+];
 export const brandTest =
   "A product-minded AI engineer with a strong data systems foundation who builds and ships usable AI experiences.";
 export const siteDescription =
   "Portfolio for an AI Product Engineer focused on multi-model products, agentic workflows, connectors, and data-backed interfaces.";
 export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com";
+export const githubUsername = "Akhielesh";
+export const githubProfileUrl = "https://github.com/Akhielesh";
+export const linkedinProfileUrl = "https://www.linkedin.com/in/akhielesh-srirangam-a2110471/";
+export const guestbookRepo = "Akhielesh/Akhielesh";
+export const guestbookLabel = "portfolio-remark";
+export const linkedinActivityUrl = process.env.NEXT_PUBLIC_LINKEDIN_ACTIVITY_URL ?? "";
 
 export const navigation: Array<{ id: SectionId; label: string }> = [
   { id: "hero", label: "Home" },
@@ -95,6 +109,7 @@ export const navigation: Array<{ id: SectionId; label: string }> = [
   { id: "systems-capabilities", label: "Systems" },
   { id: "data-backbone", label: "Data Backbone" },
   { id: "career", label: "Career" },
+  { id: "live-signal", label: "Pulse" },
   { id: "writing", label: "Writing" },
   { id: "contact", label: "Links" }
 ];
@@ -489,15 +504,21 @@ export const upcomingTopics: UpcomingTopic[] = [
 export const contactLinks: ContactLink[] = [
   {
     label: "LinkedIn",
-    href: "https://www.linkedin.com/in/akhielesh-srirangam-a2110471/",
+    href: linkedinProfileUrl,
     note: "Professional profile with role history, current focus, and public experience context.",
     availability: "Public profile"
   },
   {
     label: "GitHub",
-    href: "https://github.com/Akhielesh",
+    href: githubProfileUrl,
     note: "Repository trail for shipped work, experiments, and the portfolio source itself.",
     availability: "Public profile"
+  },
+  {
+    label: "Remarks / Guestbook",
+    href: "/remarks/",
+    note: "Public comments page where visitors can leave notes about the work, products, and overall portfolio.",
+    availability: "Public guestbook"
   },
   {
     label: "Email",

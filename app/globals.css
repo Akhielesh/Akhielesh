@@ -4,24 +4,26 @@
 
 @layer base {
   :root {
-    --background: 0 0% 5%;
-    --foreground: 42 33% 96%;
-    --card: 0 0% 8%;
-    --card-foreground: 42 33% 96%;
-    --popover: 0 0% 8%;
-    --popover-foreground: 42 33% 96%;
-    --primary: 42 33% 96%;
-    --primary-foreground: 0 0% 6%;
-    --secondary: 0 0% 9%;
-    --secondary-foreground: 42 20% 92%;
-    --muted: 0 0% 13%;
-    --muted-foreground: 40 11% 70%;
-    --accent: 0 0% 11%;
-    --accent-foreground: 42 33% 96%;
+    --background: 220 18% 6%;
+    --foreground: 42 30% 96%;
+    --card: 220 18% 8%;
+    --card-foreground: 42 30% 96%;
+    --popover: 220 18% 8%;
+    --popover-foreground: 42 30% 96%;
+    --primary: 42 30% 96%;
+    --primary-foreground: 220 20% 7%;
+    --secondary: 218 18% 10%;
+    --secondary-foreground: 42 18% 92%;
+    --muted: 220 16% 14%;
+    --muted-foreground: 38 10% 70%;
+    --accent: 220 15% 11%;
+    --accent-foreground: 42 30% 96%;
     --border: 0 0% 100% / 0.12;
     --input: 0 0% 100% / 0.14;
-    --ring: 42 33% 96%;
+    --ring: 42 30% 96%;
     --radius: 1.1rem;
+    --warm-glow: 32 89% 67%;
+    --cool-glow: 188 48% 63%;
   }
 
   * {
@@ -30,18 +32,51 @@
 
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 7.5rem;
   }
 
   body {
+    position: relative;
+    isolation: isolate;
     min-height: 100vh;
     background:
-      radial-gradient(circle at top left, rgba(255, 255, 255, 0.1), transparent 32%),
-      radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 26%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+      radial-gradient(circle at 16% 12%, hsl(var(--warm-glow) / 0.16), transparent 22%),
+      radial-gradient(circle at 84% 10%, hsl(var(--cool-glow) / 0.14), transparent 20%),
+      radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08), transparent 32%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
       hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: var(--font-sans), sans-serif;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 88px 88px;
+    mask-image: radial-gradient(circle at center, black 35%, transparent 82%);
+    opacity: 0.18;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 20% 25%, hsl(var(--warm-glow) / 0.12), transparent 26%),
+      radial-gradient(circle at 80% 30%, hsl(var(--cool-glow) / 0.12), transparent 24%),
+      radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.06), transparent 36%);
+    filter: blur(28px);
+    opacity: 0.78;
   }
 
   h1,
@@ -64,9 +99,112 @@
 @layer components {
   .surface {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.025)),
       rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(18px);
+    backdrop-filter: blur(14px);
+  }
+
+  .section-shell {
+    position: relative;
+    overflow: hidden;
+  }
+
+  section[id] {
+    scroll-margin-top: 7.5rem;
+  }
+
+  .section-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto auto;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .panel-shell {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top right, rgba(255, 255, 255, 0.11), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+      rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 30px 110px -54px rgba(0, 0, 0, 0.82);
+  }
+
+  .panel-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+  }
+
+  .interactive-panel {
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.35s ease,
+      background-color 0.35s ease,
+      box-shadow 0.35s ease;
+  }
+
+  .interactive-panel::before {
+    content: "";
+    position: absolute;
+    inset: -18% auto auto 50%;
+    width: 18rem;
+    height: 18rem;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.14), transparent 68%);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+
+  .interactive-panel:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255, 255, 255, 0.18);
+    box-shadow: 0 28px 70px -46px rgba(0, 0, 0, 0.9);
+  }
+
+  .interactive-panel:hover::before {
+    opacity: 1;
+  }
+
+  .eyebrow-label {
+    @apply font-mono text-[11px] uppercase tracking-[0.32em] text-muted-foreground;
+  }
+
+  .soft-divider {
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  }
+}
+
+@supports (content-visibility: auto) {
+  .section-shell {
+    content-visibility: auto;
+    contain-intrinsic-size: 920px;
+  }
+
+  #hero.section-shell {
+    content-visibility: visible;
+    contain-intrinsic-size: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .interactive-panel:hover {
+    transform: none;
+    box-shadow: none;
   }
 }
 

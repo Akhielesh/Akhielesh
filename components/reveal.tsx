@@ -1,28 +1,53 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import type { PropsWithChildren } from "react";
+import { useSyncExternalStore, type PropsWithChildren } from "react";
 
 interface RevealProps extends PropsWithChildren {
   className?: string;
   delay?: number;
-  offset?: number;
+  distance?: number;
+  amount?: number;
+  once?: boolean;
+  variant?: "rise" | "soft" | "pop";
 }
 
-export function Reveal({ children, className, delay = 0, offset = 28 }: RevealProps) {
+export function Reveal({
+  children,
+  className,
+  delay = 0,
+  distance = 28,
+  amount = 0.2,
+  once = true,
+  variant = "rise"
+}: RevealProps) {
   const reduceMotion = useReducedMotion();
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false
+  );
 
-  if (reduceMotion) {
+  if (reduceMotion || !mounted) {
     return <div className={className}>{children}</div>;
   }
+
+  const initial =
+    variant === "soft"
+      ? { opacity: 0, y: distance * 0.6 }
+      : variant === "pop"
+        ? { opacity: 0, y: distance, scale: 0.985 }
+        : { opacity: 0, y: distance };
+
+  const animate = variant === "pop" ? { opacity: 1, y: 0, scale: 1 } : { opacity: 1, y: 0 };
 
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: offset }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
+      initial={initial}
+      whileInView={animate}
+      viewport={{ once, amount }}
+      transition={{ duration: 0.82, delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.div>

@@ -6,6 +6,7 @@ import { ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 
 import type { ProjectCaseStudy } from "@/content/site";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface HeroProjectPanelProps {
@@ -16,86 +17,165 @@ export function HeroProjectPanel({ projects }: HeroProjectPanelProps) {
   const [activeSlug, setActiveSlug] = useState(projects[0]?.slug);
   const reduceMotion = useReducedMotion();
   const activeProject = projects.find((project) => project.slug === activeSlug) ?? projects[0];
+  const supportingSteps = activeProject.architecture.slice(0, 3);
+  const surfaceNotes = [
+    {
+      label: "Current state",
+      value: activeProject.status
+    },
+    {
+      label: "Delivery surface",
+      value: activeProject.deliverables.slice(0, 2).join(" / ")
+    },
+    {
+      label: "Core stack",
+      value: activeProject.stack.slice(0, 3).join(" / ")
+    }
+  ];
 
   return (
-    <div className="surface relative overflow-hidden rounded-[2rem] border border-white/10 p-4 shadow-panel sm:p-5">
-      <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-      <div className="mb-5 flex items-center justify-between">
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.34em] text-muted-foreground">Signature interaction</p>
-          <p className="mt-2 text-sm text-foreground/78">Expand a product to inspect the system behind it.</p>
+    <div className="panel-shell relative overflow-hidden rounded-[2.2rem] border border-white/10 p-4 shadow-panel sm:p-6">
+      <div className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+      <div className="absolute -right-12 top-10 h-32 w-32 rounded-full bg-[radial-gradient(circle,_rgba(246,186,116,0.18),_transparent_72%)] blur-3xl" />
+
+      <div className="grid gap-5 xl:grid-cols-[290px_minmax(0,1fr)]">
+        <div className="space-y-5">
+          <div>
+            <p className="eyebrow-label">Signature interaction</p>
+            <h2 className="mt-3 max-w-sm font-display text-[2.1rem] leading-none tracking-tight text-foreground sm:text-[2.45rem]">
+              Switch products. Understand the shape fast.
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-muted-foreground">
+              Atlas and ComicForge stay compact here. The full breakdown lives inside each case study, not inside this hero block.
+            </p>
+          </div>
+
+          <div className="grid gap-3">
+            {projects.map((project, index) => {
+              const isActive = project.slug === activeProject.slug;
+
+              return (
+                <motion.button
+                  key={project.slug}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() => setActiveSlug(project.slug)}
+                  whileHover={reduceMotion ? undefined : { y: -3 }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                  className={cn(
+                    "group rounded-[1.45rem] border p-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    isActive
+                      ? "border-white/18 bg-white/[0.08] text-foreground"
+                      : "border-white/8 bg-white/[0.03] text-foreground/78 hover:border-white/14 hover:bg-white/[0.05]"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{project.kicker}</p>
+                      <h3 className="mt-2 font-display text-[1.9rem] leading-none tracking-tight">{project.shortTitle}</h3>
+                    </div>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.26em] text-muted-foreground">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{project.summary}</p>
+                </motion.button>
+              );
+            })}
+          </div>
+
+          <div className="rounded-[1.45rem] border border-white/8 bg-black/20 px-4 py-4">
+            <p className="eyebrow-label">Reading mode</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              This section is now a quick switchboard: short summaries, visible delivery shape, and a clean path into the longer case study.
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {projects.map((project) => {
-          const isActive = project.slug === activeProject.slug;
-          return (
-            <button
-              key={project.slug}
-              type="button"
-              aria-pressed={isActive}
-              onClick={() => setActiveSlug(project.slug)}
-              className={cn(
-                "group rounded-[1.6rem] border p-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                isActive
-                  ? "border-white/20 bg-white/[0.08] text-foreground"
-                  : "border-white/8 bg-white/[0.03] text-foreground/80 hover:border-white/16 hover:bg-white/[0.05]"
-              )}
-            >
-              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{project.kicker}</p>
-              <h3 className="mt-3 font-display text-2xl leading-none tracking-tight">{project.shortTitle}</h3>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">{project.summary}</p>
-            </button>
-          );
-        })}
-      </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeProject.slug}
-          initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-          animate={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-          exit={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: -12 }}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-4 rounded-[1.7rem] border border-white/10 bg-black/20 p-5"
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-                {activeProject.shortTitle} architecture
-              </p>
-              <h3 className="mt-2 max-w-xl font-display text-3xl leading-none tracking-tight text-foreground">
-                {activeProject.heroStatement}
-              </h3>
-            </div>
-            <Link
-              href={`/projects/${activeProject.slug}`}
-              className="inline-flex items-center gap-2 text-sm text-foreground transition-colors hover:text-white"
-            >
-              Open case study
-              <ArrowUpRight className="size-4" />
-            </Link>
-          </div>
-          <div className="mt-6 grid gap-3">
-            {activeProject.architecture.map((step, index) => (
-              <div
-                key={`${activeProject.slug}-${step.label}`}
-                className="grid gap-3 rounded-[1.4rem] border border-white/8 bg-white/[0.03] p-4 sm:grid-cols-[120px_minmax(0,1fr)]"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="flex size-7 items-center justify-center rounded-full border border-white/12 font-mono text-[11px] text-muted-foreground">
-                    {index + 1}
-                  </span>
-                  <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{step.label}</span>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeProject.slug}
+            initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: -14 }}
+            transition={reduceMotion ? { duration: 0 } : { duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-[1.9rem] border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 sm:p-6"
+          >
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.06fr)_minmax(280px,0.94fr)]">
+              <div className="flex h-full flex-col">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="accent">{activeProject.shortTitle}</Badge>
+                  <Badge variant="subtle">{activeProject.kicker}</Badge>
                 </div>
-                <div className="space-y-1.5">
-                  <p className="text-sm font-medium text-foreground">{step.title}</p>
-                  <p className="text-sm leading-6 text-muted-foreground">{step.summary}</p>
+
+                <h3 className="mt-5 max-w-3xl font-display text-[2.8rem] leading-[0.92] tracking-tight text-foreground sm:text-[3.2rem]">
+                  {activeProject.title}
+                </h3>
+                <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
+                  {activeProject.heroStatement}
+                </p>
+
+                <div className="mt-6 grid gap-3 lg:grid-cols-3">
+                  {surfaceNotes.map((item) => (
+                    <div key={item.label} className="rounded-[1.25rem] border border-white/8 bg-black/20 px-4 py-4">
+                      <p className="eyebrow-label">{item.label}</p>
+                      <p className="mt-3 text-sm leading-6 text-foreground/84">{item.value}</p>
+                    </div>
+                  ))}
                 </div>
+
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {activeProject.tags.slice(0, 5).map((tag) => (
+                    <Badge key={tag} variant="subtle">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+
+                <Link
+                  href={`/projects/${activeProject.slug}`}
+                  className="mt-auto inline-flex items-center gap-2 pt-6 text-sm text-foreground transition-colors hover:text-white"
+                >
+                  Open full case study
+                  <ArrowUpRight className="size-4" />
+                </Link>
               </div>
-            ))}
-          </div>
-        </motion.div>
-      </AnimatePresence>
+
+              <div className="grid gap-3">
+                <div className="rounded-[1.35rem] border border-white/8 bg-white/[0.03] px-4 py-4">
+                  <p className="eyebrow-label">System shape</p>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                    The quick read below surfaces the workflow logic without forcing the full architecture write-up into the hero.
+                  </p>
+                </div>
+
+                {supportingSteps.map((step, index) => (
+                  <motion.div
+                    key={`${activeProject.slug}-${step.label}`}
+                    initial={reduceMotion ? false : { opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={
+                      reduceMotion
+                        ? { duration: 0 }
+                        : { duration: 0.26, delay: 0.06 * index + 0.04, ease: [0.16, 1, 0.3, 1] }
+                    }
+                    className="rounded-[1.35rem] border border-white/8 bg-black/20 px-4 py-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-8 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] font-mono text-[11px] text-muted-foreground">
+                        {index + 1}
+                      </span>
+                      <span className="font-mono text-[11px] uppercase tracking-[0.26em] text-muted-foreground">{step.label}</span>
+                    </div>
+                    <p className="mt-3 text-sm font-medium text-foreground">{step.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.summary}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
