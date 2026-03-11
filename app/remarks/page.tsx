@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, MessageSquareMore, Github, Linkedin } from "lucide-react";
 
-import { guestbookRepo, linkedinProfileUrl, siteName } from "@/content/site";
+import { guestbookRepo, linkedinProfileUrl } from "@/content/site";
 import { RemarksEmbed } from "@/components/remarks-embed";
 import { Reveal } from "@/components/reveal";
 import { Badge } from "@/components/ui/badge";
@@ -15,16 +15,15 @@ export const metadata: Metadata = {
 
 export default function RemarksPage() {
   return (
-    <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16">
-      <Reveal className="space-y-8">
-        <Button asChild variant="ghost" size="sm">
-          <Link href="/#live-signal">
-            <ArrowLeft className="size-4" />
-            Back to portfolio
-          </Link>
-        </Button>
-
-        <div className="space-y-4">
+    <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16">
+      <Reveal className="space-y-10">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/#contact">
+              <ArrowLeft className="size-4" />
+              Back to contact links
+            </Link>
+          </Button>
           <Badge variant="accent">Public guestbook</Badge>
           <h1 className="max-w-3xl font-display text-5xl leading-[0.94] tracking-tight text-foreground sm:text-6xl">
             Leave a remark

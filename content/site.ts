@@ -1,35 +1,61 @@
 export type SectionId =
   | "hero"
-  | "featured-ai-products"
-  | "systems-capabilities"
-  | "data-backbone"
-  | "career"
-  | "live-signal"
-  | "writing"
+  | "impact"
+  | "featured-products"
+  | "stack"
+  | "experience"
+  | "education"
   | "contact";
 
-export type ArchitectureLabel = "Problem" | "Workflow" | "Models" | "Connectors" | "UX";
+export interface NavigationItem {
+  id: SectionId;
+  label: string;
+}
+
+export interface ImpactMetric {
+  value: string;
+  label: string;
+  context: string;
+}
+
+export interface SkillCluster {
+  eyebrow: string;
+  title: string;
+  description: string;
+  bullets: string[];
+}
+
+export interface ExperienceEntry {
+  company: string;
+  role: string;
+  location: string;
+  period: string;
+  summary: string;
+  bullets: string[];
+}
+
+export interface EducationEntry {
+  institution: string;
+  credential: string;
+  location: string;
+}
+
+export interface CertificationEntry {
+  title: string;
+  issuer: string;
+}
+
+export interface ProjectLink {
+  label: string;
+  href: string;
+  note: string;
+}
 
 export interface ArchitectureStep {
-  label: ArchitectureLabel;
+  label: string;
   title: string;
   summary: string;
   detail: string;
-}
-
-export type CaseStudySectionTitle =
-  | "Problem"
-  | "Product idea"
-  | "Workflow / system design"
-  | "Key technical decisions"
-  | "Models / tools used"
-  | "UI/UX thinking"
-  | "Deployment / architecture notes"
-  | "Outcome / current status";
-
-export interface ProjectCaseStudySection {
-  title: CaseStudySectionTitle;
-  paragraphs: string[];
 }
 
 export interface ProjectCaseStudy {
@@ -37,15 +63,26 @@ export interface ProjectCaseStudy {
   shortTitle: string;
   title: string;
   kicker: string;
+  productLabel: string;
+  role: string;
   summary: string;
   heroStatement: string;
-  status: string;
-  tags: string[];
+  statusLabel: string;
+  problem: string;
   featuredBullets: string[];
+  verifiedFeatures: string[];
+  aiStack: string[];
+  platformStack: string[];
+  recruiterKeywords: string[];
+  links: ProjectLink[];
   architecture: ArchitectureStep[];
-  stack: string[];
-  deliverables: string[];
-  sections: ProjectCaseStudySection[];
+}
+
+export interface ContactLink {
+  label: string;
+  href: string | null;
+  note: string;
+  availability: string;
 }
 
 export interface CapabilityGroup {
@@ -73,431 +110,407 @@ export interface UpcomingTopic {
   summary: string;
 }
 
-export interface ContactLink {
-  label: string;
-  href: string | null;
-  note: string;
-  availability: string;
-}
-
 export const siteName = "Akhielesh";
+export const fullName = "Akhielesh Srirangam";
+export const locationLabel = "Fairfax, VA";
 export const roleTitle = "AI Product Engineer";
 export const roleSubtitle =
-  "Building multi-model AI products, agentic workflows, connectors, and data-rich user experiences.";
+  "Fairfax, VA based AI product engineer with a Python, data engineering, and analytics foundation across automation, search, and multi-model workflow systems.";
+export const heroHeadline =
+  "AI Product Engineer building search, automation, and multi-model workflow systems on top of a Python and data-platform foundation.";
+export const heroSummary =
+  "I build recruiter-legible systems with measurable outcomes: connector-aware AI products, workflow automation, data profiling platforms, and analytics surfaces that help teams act faster.";
 export const introTitles = [
-  "AI Product Developer",
-  "AI Engineer",
-  "AI Developer",
-  "AI Researcher",
-  "AI Everything"
+  "AI Product Engineer",
+  "Python Automation Builder",
+  "Search + Workflow Systems",
+  "Data Platform Mindset"
 ];
-export const brandTest =
-  "A product-minded AI engineer with a strong data systems foundation who builds and ships usable AI experiences.";
 export const siteDescription =
-  "Portfolio for an AI Product Engineer focused on multi-model products, agentic workflows, connectors, and data-backed interfaces.";
+  "Portfolio for Akhielesh Srirangam, an AI Product Engineer in Fairfax, VA building AI search products, Python automation, data-platform workflows, and analytics systems.";
 export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com";
 export const githubUsername = "Akhielesh";
 export const githubProfileUrl = "https://github.com/Akhielesh";
 export const linkedinProfileUrl = "https://www.linkedin.com/in/akhielesh-srirangam-a2110471/";
+export const emailAddress = "akhieleshsrirangam@gmail.com";
 export const guestbookRepo = "Akhielesh/Akhielesh";
 export const guestbookLabel = "portfolio-remark";
 export const linkedinActivityUrl = process.env.NEXT_PUBLIC_LINKEDIN_ACTIVITY_URL ?? "";
 
-export const navigation: Array<{ id: SectionId; label: string }> = [
+export const navigation: NavigationItem[] = [
   { id: "hero", label: "Home" },
-  { id: "featured-ai-products", label: "AI Products" },
-  { id: "systems-capabilities", label: "Systems" },
-  { id: "data-backbone", label: "Data Backbone" },
-  { id: "career", label: "Career" },
-  { id: "live-signal", label: "Pulse" },
-  { id: "writing", label: "Writing" },
+  { id: "impact", label: "Impact" },
+  { id: "featured-products", label: "Products" },
+  { id: "stack", label: "Stack" },
+  { id: "experience", label: "Experience" },
+  { id: "education", label: "Education" },
   { id: "contact", label: "Links" }
 ];
 
 export const proofChips = [
-  "Agents & tool calling",
-  "Multi-model AI workflows",
-  "Data + UI product systems"
+  "Python automation",
+  "Databricks + ADF",
+  "AI search products",
+  "Multi-model workflows",
+  "Analytics engineering"
+];
+
+export const impactMetrics: ImpactMetric[] = [
+  {
+    value: "40%",
+    label: "Faster reporting turnaround",
+    context: "Spacewalk Systems PMO workflows spanning Jira, ServiceNow, and HR reporting."
+  },
+  {
+    value: "~15 hrs/wk",
+    label: "Manual status work removed",
+    context: "Budget and schedule deviation workflows that replaced repetitive PMO checks."
+  },
+  {
+    value: "60%",
+    label: "Profiling report generation reduced",
+    context: "GSK data quality framework automation built on Python, ADF, and Databricks."
+  },
+  {
+    value: "98%",
+    label: "Workflow success rate",
+    context: "Validation checkpoints and retry logic added across automated profiling pipelines."
+  },
+  {
+    value: "7+",
+    label: "Business domains covered",
+    context: "Automated visibility into data quality and metadata health across multiple business units."
+  },
+  {
+    value: "25%",
+    label: "Faster intake and delivery",
+    context: "Jacobs Agile Demand Process standardization for IT portfolio requests."
+  },
+  {
+    value: "30%",
+    label: "Annual cost savings",
+    context: "License optimization dashboards and SQL-backed software portfolio analytics at Jacobs."
+  }
 ];
 
 export const projectCaseStudies: ProjectCaseStudy[] = [
   {
-    slug: "atlas-search-terminal",
+    slug: "atlas-ai-search-workspace",
     shortTitle: "Atlas",
-    title: "Atlas / AI Search Terminal",
+    title: "Atlas Beta / Connector-Aware AI Search Workspace",
     kicker: "Featured AI Product",
+    productLabel: "AI search workspace",
+    role: "Product, platform, and full-stack engineering",
     summary:
-      "A connector-aware search product that turns scattered workspace knowledge into a calmer, more usable AI retrieval experience.",
+      "A search-first workspace that connects cloud tools, indexes what users authorize, and turns retrieval into a product surface with previews, collections, notifications, and operational clarity.",
     heroStatement:
-      "Atlas reframes search as a product surface: connect sources, shape retrieval, organize findings, and make the search layer feel operational instead of invisible.",
-    status: "Working product shell with search, collections, connector APIs, and analytics surfaces.",
-    tags: ["AI Search", "Connectors", "Product UX", "Collections", "Analytics"],
+      "Atlas focuses on retrieval, sensemaking, and traceability instead of vague AI claims: connect sources, search across them, inspect why results matter, and act with connector-aware boundaries.",
+    statusLabel: "Live beta",
+    problem:
+      "Knowledge work is fragmented across file storage, messaging, docs, design, and project systems. Atlas tackles that fragmentation with a connector-aware search workspace that stays honest about coverage, freshness, and supported actions.",
     featuredBullets: [
-      "Connectors and sync flows are treated as part of the product, not hidden backend plumbing.",
-      "Collections and analytics make retrieval behavior legible to users, not just accurate in logs.",
-      "The interface stays calm and operational while still exposing search intelligence."
+      "Cross-source search is paired with previews, collections, analytics, and activity so users can understand results instead of just seeing a ranked list.",
+      "The product distinguishes lean-beta and production-target runtime paths, showing real systems thinking around cost, search infrastructure, and background jobs.",
+      "Connector behavior is explicit: Atlas exposes search coverage, supported actions, and source-specific limits rather than hiding them behind generic AI copy."
     ],
-    architecture: [
-      {
-        label: "Problem",
-        title: "Search was fragmented",
-        summary: "Documents lived across workspace silos with inconsistent metadata and no unified search layer.",
-        detail:
-          "The product case study centers on reducing the friction between scattered knowledge sources and the people trying to query them."
-      },
-      {
-        label: "Workflow",
-        title: "Connector-to-collection loop",
-        summary: "Users connect sources, sync documents, search in natural language, and collect important results.",
-        detail:
-          "Atlas pairs connector onboarding, search, previews, and collection management so retrieval becomes a reusable workflow."
-      },
-      {
-        label: "Models",
-        title: "AI-assisted retrieval shaping",
-        summary: "Search suggestions and result framing are positioned as product-level intelligence instead of background magic.",
-        detail:
-          "The case study focuses on how AI search should feel in product terms: clear, trustworthy, and useful enough to drive action."
-      },
-      {
-        label: "Connectors",
-        title: "Source-aware access model",
-        summary: "Google Drive is represented in code paths, with additional connector surfaces structured for broader workspace coverage.",
-        detail:
-          "Connector work is shown as permissions, sync, and trust design, not merely API wiring."
-      },
-      {
-        label: "UX",
-        title: "Calm interface for a noisy problem",
-        summary: "The product leans on command surfaces, document previews, analytics, and collections instead of dashboard clutter.",
-        detail:
-          "Atlas is presented as an AI-first product that still respects product taste and user orientation."
-      }
+    verifiedFeatures: [
+      "Multi-account OAuth connectors with source-aware access models across file storage, code, knowledge, messaging, design, and project tools.",
+      "Cross-source search, previews, collections, notifications, activity, and analytics surfaces built around workspace retrieval and operational traceability.",
+      "Lean-beta runtime with Postgres search and database-backed queue fallback, plus a production-target path using OpenSearch, Redis/BullMQ, and S3-oriented infrastructure.",
+      "Connector adapters for Google Drive, Gmail, OneDrive, Dropbox, Box, GitHub, GitLab, Notion, Slack, Figma, Linear, Airtable, Teams, AWS S3, and Google Photos."
     ],
-    stack: [
-      "Next.js App Router",
+    aiStack: ["Query understanding", "Search ranking", "Context-aware retrieval", "Preview extraction", "Automation hooks"],
+    platformStack: [
+      "Next.js 14",
+      "React 18",
       "TypeScript",
-      "Tailwind + shadcn/ui patterns",
-      "Connector APIs",
-      "Server-side state",
-      "Analytics surfaces"
+      "Prisma",
+      "PostgreSQL",
+      "BullMQ",
+      "Redis",
+      "Supabase",
+      "S3-style artifact storage",
+      "OpenSearch",
+      "NextAuth",
+      "Cloudflare",
+      "Railway",
+      "AWS-target architecture"
     ],
-    deliverables: ["Search experience", "Connector flows", "Collections model", "Analytics UI"],
-    sections: [
+    recruiterKeywords: [
+      "AI search",
+      "retrieval systems",
+      "connector architecture",
+      "workflow automation",
+      "full-stack TypeScript",
+      "search infrastructure",
+      "background jobs",
+      "product systems"
+    ],
+    links: [
       {
-        title: "Problem",
-        paragraphs: [
-          "Search quality alone does not solve the workplace retrieval problem. Users still need a credible way to connect sources, understand what is indexed, and move from search results to usable action.",
-          "Atlas is framed around that broader product problem: knowledge is scattered across connectors, permissions matter, and the interface needs to make the system legible."
-        ]
+        label: "Live demo",
+        href: "https://atlasd-production.up.railway.app",
+        note: "Deployed beta workspace with live connector coverage and search surfaces."
       },
       {
-        title: "Product idea",
-        paragraphs: [
-          "Build an AI search terminal that treats connectors, sync state, search, collections, and analytics as one product system.",
-          "The product is not just a search box. It is the operational layer around retrieval: what is connected, what can be searched, what is worth saving, and what search behavior is telling you."
-        ]
-      },
-      {
-        title: "Workflow / system design",
-        paragraphs: [
-          "The nearby Atlas codebase already shows the product shape clearly: connector adapters, search routes, collection routes, analytics routes, and workspace data models.",
-          "This portfolio version presents that as a coherent user workflow: connect a source, sync it, search with context, inspect results, and turn useful results into collections."
-        ]
-      },
-      {
-        title: "Key technical decisions",
-        paragraphs: [
-          "The case study emphasizes source-aware product behavior rather than overclaiming hidden intelligence. Connector state, collections, and analytics are first-class because they affect trust and usability.",
-          "Interface decisions favor clarity over novelty: calm layout, visible system edges, and obvious transitions between search, preview, and organization."
-        ]
-      },
-      {
-        title: "Models / tools used",
-        paragraphs: [
-          "The product narrative centers on AI-assisted retrieval, search suggestions, and result framing layered onto a Next.js product shell.",
-          "Connectors and analytics are treated as equally important tools because a search product fails if the system around the model is weak."
-        ]
-      },
-      {
-        title: "UI/UX thinking",
-        paragraphs: [
-          "Atlas is positioned as a serious AI product, not a speculative demo. The interface should feel calm, directional, and operational.",
-          "Command surfaces, previews, collection states, and search intelligence help users understand what the system is doing without overwhelming them with dashboard noise."
-        ]
-      },
-      {
-        title: "Deployment / architecture notes",
-        paragraphs: [
-          "The reference implementation uses a Next.js application structure with API routes and connector adapters. That makes it a strong case study for productizing AI search inside a modern web stack.",
-          "In portfolio form, the project highlights how product structure, connector logic, and analytics thinking fit together."
-        ]
-      },
-      {
-        title: "Outcome / current status",
-        paragraphs: [
-          "Atlas currently reads as a serious product shell with search, collection management, connector code paths, and analytics surfaces in place.",
-          "The portfolio site treats it as evidence of AI product judgment: not just model usage, but how to make retrieval workflows usable and credible."
-        ]
+        label: "Source",
+        href: "https://github.com/Akhielesh/AtlasD",
+        note: "Next.js codebase, connector adapters, runtime modes, and platform planning docs."
       }
-    ]
-  },
-  {
-    slug: "comicforge-ai-studio",
-    shortTitle: "ComicForge",
-    title: "AI Comic Generation System",
-    kicker: "Featured AI Product",
-    summary:
-      "A stage-gated comic production studio that coordinates multi-model generation, worker services, QC, and export into a usable end-to-end product flow.",
-    heroStatement:
-      "ComicForge treats image generation as one stage in a larger production system, with UX and orchestration built to carry a project from idea to export.",
-    status: "Working monorepo with web, API, queue-based workers, QC, and export flows.",
-    tags: ["Multi-model", "Pipeline Design", "Workers", "Stage Gates", "Export"],
-    featuredBullets: [
-      "The user-facing workflow is broken into explicit stages instead of collapsing everything into one generation button.",
-      "API, worker, and storage layers are arranged around production throughput rather than demo convenience.",
-      "Quality tiers, stage guards, QC, and export make the product feel operational."
     ],
     architecture: [
       {
-        label: "Problem",
-        title: "Generation alone was not enough",
-        summary: "Comic workflows break down when script, layout, image generation, lettering, QC, and export stay manual.",
+        label: "Retrieval",
+        title: "Search-first workspace",
+        summary: "Indexed retrieval, previews, and collections are treated as the primary product loop.",
         detail:
-          "The case study positions AI as one component inside a larger production pipeline that still needs structure and user guidance."
-      },
-      {
-        label: "Workflow",
-        title: "Stage-gated production rail",
-        summary: "Projects move through setup, script, architecture, style, assets, layout, storyboard, preview, generate, QC, and export.",
-        detail:
-          "That explicit rail is a product decision: it reduces ambiguity, prevents skipped prerequisites, and keeps the system understandable."
-      },
-      {
-        label: "Models",
-        title: "Quality-aware generation paths",
-        summary: "Generation routes are sensitive to quality tiers and model routing rather than treating every job as the same.",
-        detail:
-          "The product shows how multi-model systems can stay user-comprehensible when the UX exposes stages, not raw provider complexity."
+          "Atlas is designed around finding, understanding, and acting on connected content without pretending everything is an autonomous agent workflow."
       },
       {
         label: "Connectors",
-        title: "Web, API, queues, and workers",
-        summary: "The system spans a Next.js frontend, FastAPI backend, Celery workers, Redis queues, MinIO storage, and a Node worker.",
+        title: "Source-aware adapter model",
+        summary: "Each connector exposes its own coverage, capabilities, and operational truth model.",
         detail:
-          "This is orchestration work with real surface area, not a single-page wrapper around an image endpoint."
+          "That makes the product legible for users and safer to expand as more providers and entity types come online."
       },
       {
-        label: "UX",
-        title: "Production workflow made usable",
-        summary: "Stage rails, job states, and structured project pages turn a complex backend into a navigable studio experience.",
+        label: "Platform",
+        title: "Beta to production path",
+        summary: "Lean beta economics are preserved while the architecture stays ready for OpenSearch, Redis/BullMQ, and S3-backed scale.",
         detail:
-          "The product case study highlights the interface discipline needed to make AI systems usable over time."
+          "The product documents a practical migration path instead of hard-coding expensive infrastructure too early."
       }
+    ]
+  },
+  {
+    slug: "dreamstream-comic-studio",
+    shortTitle: "DreamStream",
+    title: "DreamStream Comic Studio / Multi-Model Creation Workflow",
+    kicker: "Featured AI Product",
+    productLabel: "AI content workflow platform",
+    role: "Product, frontend, backend, and workflow orchestration",
+    summary:
+      "A staged AI comic production platform that turns scripts into structured generation flows with world extraction, style control, storyboard planning, queue-backed ComicForge jobs, QC, export, and token-aware billing.",
+    heroStatement:
+      "DreamStream treats image generation as one step inside a larger workflow system: analyze the script, shape the world, control style and layout, run queued generation jobs, review quality, and export a usable final output.",
+    statusLabel: "Live product build",
+    problem:
+      "Most AI creative tools stop at one-click generation. DreamStream addresses the harder product problem: how to give users control over story structure, character consistency, layout, billing, and delivery across a full creation pipeline.",
+    featuredBullets: [
+      "The app separates script analysis, world building, style selection, storyboard, generation, QC, and export so the workflow stays understandable.",
+      "ComicForge adds a queue-backed production layer for generation, lettering, assembly, QC, and export instead of relying on a single synchronous demo path.",
+      "The platform includes BYOK model routing, billing controls, auth, storage, and job-state tracking so the AI workflow behaves like a real product."
     ],
-    stack: [
-      "Next.js 14 frontend",
-      "FastAPI",
-      "Celery",
+    verifiedFeatures: [
+      "AI-assisted script analysis, world extraction, story architecture, style recommendation, layout guidance, and storyboard preparation.",
+      "Reference and generation flows backed by Gemini text/image paths, Flux image generation, and local model-key routing for BYOK settings.",
+      "Queue-backed ComicForge pipeline for generation jobs, QC, lettering, assembly, export, and job-status tracking.",
+      "Supabase-backed auth/storage flows, Stripe billing, token-based usage controls, and settings for image providers and model selection."
+    ],
+    aiStack: [
+      "Gemini text workflows",
+      "Gemini image generation",
+      "Flux image generation",
+      "Prompt routing",
+      "World extraction",
+      "Story architecture",
+      "QC workflows"
+    ],
+    platformStack: [
+      "Vite",
+      "React 19",
+      "TypeScript",
+      "Express",
+      "Supabase",
+      "Stripe",
+      "BullMQ",
       "Redis",
-      "MinIO",
-      "Node worker",
-      "OpenAPI client"
+      "Zustand",
+      "sharp"
     ],
-    deliverables: ["Stage-gated UX", "Model routing", "QC flow", "Export pipeline"],
-    sections: [
+    recruiterKeywords: [
+      "multi-model workflows",
+      "AI product UX",
+      "job orchestration",
+      "billing systems",
+      "queue-backed pipelines",
+      "full-stack TypeScript",
+      "creative AI products"
+    ],
+    links: [
       {
-        title: "Problem",
-        paragraphs: [
-          "Most AI comic tools stop at image generation. They do not solve the broader production workflow around scripting, layout, refinement, quality control, and export.",
-          "ComicForge is interesting because it treats the whole pipeline as the product, not just the model call."
-        ]
+        label: "Live demo",
+        href: "https://comic2.pages.dev/",
+        note: "Public DreamStream Comic Studio deployment."
       },
       {
-        title: "Product idea",
-        paragraphs: [
-          "Build a studio that lets users move a comic project through clearly defined stages, with generation, QC, and export built into the flow.",
-          "The product value comes from orchestration and usability: users can choose paths, understand state, and move a project forward without losing the thread."
-        ]
+        label: "Source",
+        href: "https://github.com/Akhielesh/Comic2/tree/Dreamstrream-v1/dreamstreamcomicstudio",
+        note: "Frontend, backend, ComicForge pipeline, and production-hardening docs."
+      }
+    ],
+    architecture: [
+      {
+        label: "Workflow",
+        title: "Stage-based product flow",
+        summary: "From script input to export, each phase has a clear role, state, and approval surface.",
+        detail:
+          "That product structure keeps the system understandable for users and easier to evolve than a one-button generation interface."
       },
       {
-        title: "Workflow / system design",
-        paragraphs: [
-          "The repository already captures the shape: a web app, a FastAPI backend, a Node worker, queue-based task execution, and stage-specific screens across the project lifecycle.",
-          "That structure becomes the core story of the case study: AI generation is embedded in a product pipeline with explicit handoffs and safeguards."
-        ]
+        label: "Models",
+        title: "Multi-model routing with BYOK",
+        summary: "Text and image tasks can route through Gemini and Flux paths with user-configurable key handling.",
+        detail:
+          "The result is a product that exposes model choice and cost controls without collapsing into raw provider jargon."
       },
       {
-        title: "Key technical decisions",
-        paragraphs: [
-          "The strongest product decision is the stage-gated rail. It imposes sequence where the workflow needs it, which makes the system safer and more understandable.",
-          "Separating web, API, and worker concerns also makes the pipeline easier to scale and reason about than a monolithic demo app."
-        ]
-      },
-      {
-        title: "Models / tools used",
-        paragraphs: [
-          "ComicForge uses multi-model thinking, quality tiers, prompt construction, image tasks, QC tasks, and export tasks.",
-          "The important point is not just model variety. It is how these tools are orchestrated behind a product flow users can actually navigate."
-        ]
-      },
-      {
-        title: "UI/UX thinking",
-        paragraphs: [
-          "The interface organizes complexity through explicit stages, project context, and job feedback. That reduces the typical AI-tool feeling of hidden state and abrupt failure.",
-          "The product is strongest when the UX communicates progress, prerequisites, and next actions without needing users to understand the backend."
-        ]
-      },
-      {
-        title: "Deployment / architecture notes",
-        paragraphs: [
-          "The monorepo structure, Docker setup, queue topology, and generated client all make this a useful case study for AI product architecture, not just frontend polish.",
-          "It demonstrates comfort with combining typed interfaces, background work, and asset handling in a single shipped system."
-        ]
-      },
-      {
-        title: "Outcome / current status",
-        paragraphs: [
-          "ComicForge stands up as a serious multi-model product concept because the pipeline, stage guards, and export paths are already represented in code.",
-          "On the portfolio site, it functions as proof of orchestration ability: product UX, backend services, and AI generation working as one system."
-        ]
+        label: "Operations",
+        title: "ComicForge job pipeline",
+        summary: "BullMQ, Redis, and backend job orchestration support generation, QC, lettering, assembly, and export flows.",
+        detail:
+          "This is productized workflow automation, not just a client-side wrapper around an image endpoint."
       }
     ]
   }
 ];
 
-export const capabilityGroups: CapabilityGroup[] = [
+export const skillClusters: SkillCluster[] = [
   {
-    eyebrow: "Agentic product thinking",
-    title: "Designing AI around workflows, not one-off prompts",
+    eyebrow: "AI Products & Workflows",
+    title: "Search, orchestration, and product flows that make AI systems usable",
     description:
-      "The strongest products here are built around state, stages, and decision points so the model becomes part of a usable system.",
+      "The strongest portfolio signal is not isolated model usage. It is building product systems that combine retrieval, prompts, jobs, state, and user-facing control surfaces.",
     bullets: [
-      "Prompt workflows that stay legible in product form",
-      "Tool calling and system surfaces that reduce hidden state",
-      "Interfaces designed around next-step clarity"
+      "AI search and retrieval workflows",
+      "Multi-model routing and tool integration",
+      "Background jobs, queue-backed pipelines, and workflow state",
+      "User-facing interfaces that explain AI behavior"
     ]
   },
   {
-    eyebrow: "Multi-model systems",
-    title: "Choosing orchestration patterns that match the job",
+    eyebrow: "Data & Automation",
+    title: "Python and data-platform engineering behind reliable automation",
     description:
-      "Different product surfaces need different generation paths, quality levels, and routing logic. The system design should expose that without overwhelming the user.",
+      "Resume-backed experience in Python, SQL, Databricks, Azure Data Factory, ETL pipelines, validation, profiling, and reusable reporting automation.",
     bullets: [
-      "Quality-aware generation paths",
-      "Stage-aware model routing",
-      "Separation between product UX and provider complexity"
+      "Python with Pandas, NumPy, and automation scripts",
+      "Databricks notebooks and ADF orchestration",
+      "ETL, validation checkpoints, retry logic, and data profiling",
+      "Metadata, data quality, and operational reporting"
     ]
   },
   {
-    eyebrow: "Connectors and tools",
-    title: "Treating connectors as product features",
+    eyebrow: "Cloud & Platform",
+    title: "Cloud-supported application and data systems",
     description:
-      "Connectors, sync state, permissions, and external data access shape trust in AI products as much as the model output does.",
+      "The portfolio combines application-layer product work with practical platform choices across auth, storage, search, jobs, and cloud environments.",
     bullets: [
-      "Connector onboarding and sync surfaces",
-      "Tool integration that supports real user tasks",
-      "Operational visibility for search and generation systems"
+      "Azure data and workflow tooling",
+      "AWS cloud fundamentals and storage/search concepts",
+      "Supabase, PostgreSQL, Redis, S3-style storage, and auth flows",
+      "Deployment thinking across lean beta and production-target architectures"
     ]
   },
   {
-    eyebrow: "Shipping discipline",
-    title: "From system shape to shippable interface",
+    eyebrow: "Analytics & Decisioning",
+    title: "Dashboards, KPI reporting, and visibility into business operations",
     description:
-      "The throughline is practical delivery: interfaces, backend structure, deployment thinking, and enough product taste to make the system feel intentional.",
+      "A strong analytics foundation shows up in both resume work and product work: Power BI dashboards, ThoughtSpot, Tableau, executive reporting, and observability-minded product surfaces.",
     bullets: [
-      "Responsive, product-forward UI systems",
-      "Deployment-ready application structure",
-      "Data-backed interaction design"
+      "Power BI, Tableau, and ThoughtSpot",
+      "Executive dashboards and KPI automation",
+      "Operational analytics and portfolio reporting",
+      "Decision-support systems for PMO and leadership use"
     ]
   }
 ];
 
-export const backboneItems: BackboneItem[] = [
+export const experienceEntries: ExperienceEntry[] = [
   {
-    title: "Cloud foundation",
-    value: "Azure",
-    description: "Comfort with cloud-hosted product systems and the operational layer behind internal and customer-facing tools."
-  },
-  {
-    title: "Data platform work",
-    value: "Databricks",
-    description: "Experience with data-intensive workflows that inform how AI products should handle structure, scale, and reliability."
-  },
-  {
-    title: "Pipelines",
-    value: "ETL",
-    description: "Pipeline thinking carries into AI products through ingestion, shaping, enrichment, and controlled handoffs between stages."
-  },
-  {
-    title: "Decision surfaces",
-    value: "BI / Dashboards",
-    description: "Analytics and dashboard experience strengthens the ability to make AI systems observable and useful in real product contexts."
-  },
-  {
-    title: "Metadata rigor",
-    value: "Profiling / Lineage",
-    description: "Understanding data provenance helps when search, connectors, and AI outputs need trust, explainability, and operational clarity."
-  },
-  {
-    title: "Automation mindset",
-    value: "Ops + orchestration",
-    description: "Automation and systems thinking support faster iteration on both AI products and the delivery pipeline around them."
-  }
-];
-
-export const careerPhases: CareerPhase[] = [
-  {
-    title: "Current focus",
-    period: "AI Product Engineering",
+    company: "Spacewalk Systems",
+    role: "Data Analyst",
+    location: "Arlington, VA",
+    period: "Mar 2025 - Dec 2025",
     summary:
-      "Building AI-first products where orchestration, interfaces, and system clarity matter as much as the model itself.",
-    outcomes: [
-      "Productized AI search and connector workflows",
-      "Multi-stage generation systems with real UX structure",
-      "Delivery patterns shaped around usable AI behavior"
+      "Built PMO reporting workflows and dashboard systems that combined Python, SQL, Azure Data Factory, and Power BI for executive portfolio visibility.",
+    bullets: [
+      "Engineered Python- and SQL-driven workflows across Jira, ServiceNow, and HR data, cutting reporting turnaround time by 40%.",
+      "Designed automated budget and timeline deviation alerts that removed manual status checks and saved the PMO team about 15 hours per week.",
+      "Delivered executive-ready dashboards and ad hoc portfolio analysis for resource utilization, burn rate monitoring, and quarterly reviews."
     ]
   },
   {
-    title: "Technical backbone",
-    period: "Data Systems & Analytics",
+    company: "GSK (Contract)",
+    role: "Data Analyst",
+    location: "Collegeville, PA",
+    period: "Jun 2023 - Dec 2024",
     summary:
-      "A data engineering and analytics base strengthens the way product decisions are made, instrumented, and operationalized.",
-    outcomes: [
-      "ETL and data movement habits",
-      "BI and dashboard thinking",
-      "Metadata, profiling, and observability awareness"
+      "Built reusable data profiling and ETL automation on Azure Data Factory, Databricks, Python, and Power BI for enterprise data quality reporting.",
+    bullets: [
+      "Designed automated ETL pipelines in ADF and Databricks and packaged a customized Python profiler for SQL, CSV, Blob, Oracle, and MySQL data sources.",
+      "Integrated validation checkpoints, retries, and notification logic, reaching a 98% workflow success rate across profiling and ingestion runs.",
+      "Reduced profiling report generation time by 60% and expanded automated DQ visibility across 7+ business domains through leadership dashboards."
     ]
   },
   {
-    title: "Working style",
-    period: "Shipping mindset",
+    company: "Jacobs Engineering Group Inc.",
+    role: "IT Analyst / Data Automation Intern",
+    location: "Arlington, VA",
+    period: "Aug 2022 - May 2023",
     summary:
-      "The common thread is turning complex technical capability into products people can actually use.",
-    outcomes: [
-      "Product-first framing instead of model-first novelty",
-      "Comfort across UI, backend, and deployment layers",
-      "Bias toward systems that can be shipped and iterated"
+      "Supported IT portfolio analytics through Python log parsing, SQL-backed ETL, Power BI dashboards, and process standardization for demand intake and workforce planning.",
+    bullets: [
+      "Automated log parsing and ETL scripts to move unstructured operational data into structured reporting tables and dashboard feeds.",
+      "Standardized the Agile Demand Process and improved IT portfolio request delivery time by 25% through clearer workflow design.",
+      "Built software utilization and license-cost dashboards that informed purchasing decisions and contributed to 30% annual cost savings."
+    ]
+  },
+  {
+    company: "Alphadynamcis",
+    role: "Product Research Analyst Intern",
+    location: "Chennai, India",
+    period: "Jul 2020 - Sep 2020",
+    summary:
+      "Produced client-facing research and reporting for educational product organizations, combining remote collaboration, analysis, and presentation support.",
+    bullets: [
+      "Generated Tableau-based reports that supported customer lead generation and product visibility for education-focused clients.",
+      "Collaborated remotely under short deadlines to prepare reports and presentation material for client meetings.",
+      "Analyzed product performance and assisted with cloud and system support tasks in VMware-centered environments."
     ]
   }
 ];
 
-export const upcomingTopics: UpcomingTopic[] = [
+export const educationEntries: EducationEntry[] = [
   {
-    title: "What makes an AI product feel usable",
-    summary: "On why orchestration, state, and interface trust matter more than novelty."
+    institution: "The George Washington University, School of Business",
+    credential: "Master of Science in Information Systems Technology",
+    location: "Washington, DC, USA"
   },
   {
-    title: "Connectors are product design",
-    summary: "How source access, sync state, and permissions shape credibility in AI search."
+    institution: "The George Washington University, School of Business",
+    credential: "Graduate Certificate in Cloud Applications and IT",
+    location: "Washington, DC, USA"
   },
   {
-    title: "Designing stage-gated AI workflows",
-    summary: "When explicit sequence improves outcomes in complex generation tools."
+    institution: "SRM Institute of Science and Technology",
+    credential: "Bachelor of Technology in Computer Science Engineering",
+    location: "Chennai, India"
+  }
+];
+
+export const certificationEntries: CertificationEntry[] = [
+  {
+    title: "ThoughtSpot BI Professional",
+    issuer: "ThoughtSpot"
   },
   {
-    title: "Why data systems still matter in AI products",
-    summary: "How ETL, BI, and lineage habits improve product quality when models enter the stack."
+    title: "Machine Learning Specialization",
+    issuer: "Stanford University / Coursera"
+  },
+  {
+    title: "AWS Certified Cloud Practitioner",
+    issuer: "Amazon Web Services"
   }
 ];
 
@@ -505,40 +518,68 @@ export const contactLinks: ContactLink[] = [
   {
     label: "LinkedIn",
     href: linkedinProfileUrl,
-    note: "Professional profile with role history, current focus, and public experience context.",
+    note: "Role history, certifications, and professional background.",
     availability: "Public profile"
   },
   {
     label: "GitHub",
     href: githubProfileUrl,
-    note: "Repository trail for shipped work, experiments, and the portfolio source itself.",
+    note: "Source code for Atlas, DreamStream, and portfolio work.",
     availability: "Public profile"
   },
   {
-    label: "Remarks / Guestbook",
-    href: "/remarks/",
-    note: "Public comments page where visitors can leave notes about the work, products, and overall portfolio.",
-    availability: "Public guestbook"
-  },
-  {
     label: "Email",
-    href: "mailto:akhieleshsrirangam@gmail.com",
-    note: "Direct contact point for product, AI, and platform conversations.",
+    href: `mailto:${emailAddress}`,
+    note: "Direct contact for AI product, Python automation, and platform roles.",
     availability: "Direct contact"
   },
   {
     label: "Atlas demo",
     href: "https://atlasd-production.up.railway.app",
-    note: "Live product entry point for the Atlas AI search terminal case study.",
+    note: "Live beta for the connector-aware AI search workspace.",
     availability: "Live demo"
   },
   {
-    label: "ComicForge demo",
+    label: "DreamStream demo",
     href: "https://comic2.pages.dev/",
-    note: "Live product entry point for the multi-stage AI comic generation workflow.",
+    note: "Live product build for DreamStream Comic Studio.",
     availability: "Live demo"
   }
 ];
+
+export const capabilityGroups: CapabilityGroup[] = skillClusters;
+
+export const backboneItems: BackboneItem[] = [
+  {
+    title: "Primary languages",
+    value: "Python + SQL",
+    description: "Used for ETL, profiling, reporting automation, and data-backed analytics workflows."
+  },
+  {
+    title: "Pipeline tooling",
+    value: "Databricks + ADF",
+    description: "Practical experience shipping orchestrated data workflows, scheduling, retries, and validation."
+  },
+  {
+    title: "Analytics",
+    value: "Power BI / Tableau / ThoughtSpot",
+    description: "Executive dashboards, KPI reporting, and decision-support surfaces built for operational clarity."
+  },
+  {
+    title: "Platform stack",
+    value: "Postgres / Redis / Supabase",
+    description: "Application and data infrastructure choices that support modern AI product delivery."
+  }
+];
+
+export const careerPhases: CareerPhase[] = experienceEntries.map((entry) => ({
+  title: `${entry.company} - ${entry.role}`,
+  period: entry.period,
+  summary: `${entry.location} • ${entry.summary}`,
+  outcomes: entry.bullets
+}));
+
+export const upcomingTopics: UpcomingTopic[] = [];
 
 export function getProjectCaseStudy(slug: string) {
   return projectCaseStudies.find((project) => project.slug === slug);

@@ -10,10 +10,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${siteUrl}/`,
       priority: 1
     },
-    {
-      url: `${siteUrl}/remarks`,
-      priority: 0.7
-    },
     ...projectCaseStudies.map((project) => ({
       url: `${siteUrl}/projects/${project.slug}`,
       priority: 0.8

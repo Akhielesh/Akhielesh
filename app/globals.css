@@ -223,9 +223,6 @@
   }
 }
 
-/* content-visibility removed: it interferes with IntersectionObserver-based
-   scroll tracking in the navigation bar. Sections need to be observable. */
-
 /* Mobile: disable hover transforms, reduce blur for perf */
 @media (max-width: 767px) {
   .interactive-panel:hover {

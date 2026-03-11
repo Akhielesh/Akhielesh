@@ -20,16 +20,16 @@ export function HeroProjectPanel({ projects }: HeroProjectPanelProps) {
   const supportingSteps = activeProject.architecture.slice(0, 3);
   const surfaceNotes = [
     {
-      label: "Current state",
-      value: activeProject.status
+      label: "Status",
+      value: activeProject.statusLabel
     },
     {
-      label: "Delivery surface",
-      value: activeProject.deliverables.slice(0, 2).join(" / ")
+      label: "Role",
+      value: activeProject.role
     },
     {
-      label: "Core stack",
-      value: activeProject.stack.slice(0, 3).join(" / ")
+      label: "AI stack",
+      value: activeProject.aiStack.slice(0, 3).join(" / ")
     }
   ];
 
@@ -40,12 +40,12 @@ export function HeroProjectPanel({ projects }: HeroProjectPanelProps) {
 
       <div className="space-y-5">
         <div>
-          <p className="eyebrow-label">Signature interaction</p>
-          <h2 className="mt-3 max-w-sm font-display text-[clamp(1.8rem,4vw,2.45rem)] leading-none tracking-tight text-foreground">
-            Switch products. Understand the shape fast.
+          <p className="eyebrow-label">Flagship products</p>
+          <h2 className="mt-3 max-w-xl font-display text-[clamp(1.8rem,4vw,2.45rem)] leading-none tracking-tight text-foreground">
+            Verified products with real AI workflows, platform choices, and recruiter-readable outcomes.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-muted-foreground">
-            Atlas and ComicForge stay compact here. The full breakdown lives inside each case study, not inside this hero block.
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">
+            The homepage stays compact. Each case study opens into product thesis, verified capabilities, platform stack, workflow design, and live links.
           </p>
         </div>
 
@@ -70,7 +70,7 @@ export function HeroProjectPanel({ projects }: HeroProjectPanelProps) {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{project.kicker}</p>
+                    <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{project.productLabel}</p>
                     <h3 className="mt-2 font-display text-[clamp(1.4rem,3vw,1.9rem)] leading-none tracking-tight">{project.shortTitle}</h3>
                   </div>
                   <span className="font-mono text-[11px] uppercase tracking-[0.26em] text-muted-foreground">
@@ -95,10 +95,11 @@ export function HeroProjectPanel({ projects }: HeroProjectPanelProps) {
         >
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="accent">{activeProject.shortTitle}</Badge>
-            <Badge variant="subtle">{activeProject.kicker}</Badge>
+            <Badge variant="subtle">{activeProject.statusLabel}</Badge>
+            <Badge variant="subtle">{activeProject.productLabel}</Badge>
           </div>
 
-          <h3 className="mt-5 max-w-3xl font-display text-[clamp(1.8rem,4vw,3.2rem)] leading-[0.92] tracking-tight text-foreground">
+          <h3 className="mt-5 max-w-4xl font-display text-[clamp(1.8rem,4vw,3.2rem)] leading-[0.92] tracking-tight text-foreground">
             {activeProject.title}
           </h3>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
@@ -115,7 +116,7 @@ export function HeroProjectPanel({ projects }: HeroProjectPanelProps) {
           </div>
 
           <div className="mt-5 flex flex-wrap gap-2">
-            {activeProject.tags.slice(0, 5).map((tag) => (
+            {activeProject.recruiterKeywords.map((tag) => (
               <Badge key={tag} variant="subtle">
                 {tag}
               </Badge>
@@ -151,7 +152,7 @@ export function HeroProjectPanel({ projects }: HeroProjectPanelProps) {
             href={`/projects/${activeProject.slug}`}
             className="mt-6 inline-flex items-center gap-2 text-sm text-foreground transition-colors hover:text-white"
           >
-            Open full case study
+            Open case study
             <ArrowUpRight className="size-4" />
           </Link>
         </motion.div>

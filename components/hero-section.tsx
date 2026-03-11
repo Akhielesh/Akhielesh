@@ -1,23 +1,30 @@
 "use client";
+import { ArrowDownRight, MoveRight, Sparkles } from "lucide-react";
 
-import { ArrowDownRight, MoveRight } from "lucide-react";
-
-import { capabilityGroups, proofChips, projectCaseStudies, roleSubtitle, roleTitle, siteName } from "@/content/site";
+import {
+  certificationEntries,
+  experienceEntries,
+  fullName,
+  heroHeadline,
+  heroSummary,
+  locationLabel,
+  projectCaseStudies,
+  proofChips,
+  roleTitle
+} from "@/content/site";
 import { Reveal } from "@/components/reveal";
 import { HeroProjectPanel } from "@/components/hero-project-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GradientText } from "@/components/animate/gradient-text";
-import { TypingText } from "@/components/animate/typing-text";
 import { FloatingParticles } from "@/components/animate/floating-particles";
 import { StaggerChildren, StaggerItem } from "@/components/animate/stagger-children";
 import { ShineCard } from "@/components/animate/shine-card";
 
 export function HeroSection() {
   const signalCards = [
-    { label: "Featured systems", value: String(projectCaseStudies.length).padStart(2, "0") },
-    { label: "Capability clusters", value: String(capabilityGroups.length).padStart(2, "0") },
-    { label: "Design stance", value: "Calm + sharp" }
+    { label: "Flagship products", value: String(projectCaseStudies.length).padStart(2, "0") },
+    { label: "Career roles", value: String(experienceEntries.length).padStart(2, "0") },
+    { label: "Certifications", value: String(certificationEntries.length).padStart(2, "0") }
   ];
 
   return (
@@ -33,34 +40,31 @@ export function HeroSection() {
         <Reveal variant="soft" className="space-y-8 sm:space-y-10">
           <div className="inline-flex flex-wrap items-center gap-3">
             <Badge variant="accent" className="w-fit">
-              {siteName}
+              {fullName}
             </Badge>
             <Badge variant="subtle" className="w-fit">
-              Building usable AI systems
+              {locationLabel}
             </Badge>
           </div>
 
           <div className="space-y-5">
             <p className="eyebrow-label">{roleTitle}</p>
-            <h1 className="max-w-4xl font-display text-[clamp(2.4rem,7vw,5.6rem)] leading-[0.9] tracking-tight text-foreground">
-              <GradientText>Complex AI workflows</GradientText>{" "}
-              deserve interfaces with taste, pacing, and structure.
+            <h1 className="max-w-5xl font-display text-[clamp(2.4rem,7vw,5.6rem)] leading-[0.9] tracking-tight text-foreground">
+              {heroHeadline}
             </h1>
-            <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-              <TypingText text={roleSubtitle} speed={25} delay={800} />
-            </p>
+            <p className="max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg">{heroSummary}</p>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <a href="#featured-ai-products">
-                Explore AI Products
+              <a href="#featured-products">
+                Explore Products
                 <MoveRight className="size-4" />
               </a>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <a href="#contact">
-                Get in Touch
+              <a href="#experience">
+                View Experience
                 <ArrowDownRight className="size-4" />
               </a>
             </Button>
@@ -79,16 +83,20 @@ export function HeroSection() {
               <ShineCard className="panel-shell rounded-[1.5rem] border border-white/10 p-5 sm:col-span-3 xl:col-span-1">
                 <p className="eyebrow-label">Operating lens</p>
                 <p className="mt-3 text-sm leading-6 text-foreground/82">
-                  Ship AI features as product systems: visible inputs, intentional transitions, and interfaces that explain what the machine is doing.
+                  AI-first product work backed by Python automation, analytics engineering, and data-platform discipline.
                 </p>
               </ShineCard>
             </StaggerItem>
           </StaggerChildren>
 
           <div className="flex flex-wrap gap-2">
-            {proofChips.map((chip) => (
-              <div key={chip} className="rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-sm text-foreground/78">
-                {chip}
+            {proofChips.map((chip, index) => (
+              <div
+                key={chip}
+                className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-sm text-foreground/78"
+              >
+                {index === 0 ? <Sparkles className="size-3.5 text-[#f0b56f]" /> : null}
+                <span>{chip}</span>
               </div>
             ))}
           </div>

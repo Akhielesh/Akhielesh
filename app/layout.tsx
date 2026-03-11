@@ -1,26 +1,48 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Instrument_Serif } from "next/font/google";
 import { MotionConfig } from "motion/react";
-import { roleTitle, siteDescription, siteName, siteUrl } from "@/content/site";
+import { fullName, roleTitle, siteDescription, siteUrl } from "@/content/site";
 import { SiteNav } from "@/components/site-nav";
 
 import "./globals.css";
 
+const sansFont = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
+  display: "swap"
+});
+
+const monoFont = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+  display: "swap"
+});
+
+const displayFont = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-display",
+  display: "swap"
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${siteName} | ${roleTitle}`,
-    template: `%s | ${siteName}`
+    default: `${fullName} | ${roleTitle}`,
+    template: `%s | ${fullName}`
   },
   description: siteDescription,
   openGraph: {
-    title: `${siteName} | ${roleTitle}`,
+    title: `${fullName} | ${roleTitle}`,
     description: siteDescription,
     url: siteUrl,
-    siteName
+    siteName: fullName
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteName} | ${roleTitle}`,
+    title: `${fullName} | ${roleTitle}`,
     description: siteDescription
   }
 };
@@ -33,14 +55,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <meta name="theme-color" content="#0d1117" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap"
-          rel="stylesheet"
-        />
       </head>
-      <body className="antialiased">
+      <body className={`${sansFont.variable} ${monoFont.variable} ${displayFont.variable} antialiased`}>
         <MotionConfig reducedMotion="user">
           <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden will-change-transform" style={{ contain: "strict" }}>
             <div className="absolute left-[8%] top-20 size-72 rounded-full bg-[#f0b56f]/10 blur-[110px]" />

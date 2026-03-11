@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Mail } from "lucide-react";
 
-import { brandTest, contactLinks } from "@/content/site";
+import { contactLinks, emailAddress, fullName, locationLabel } from "@/content/site";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { Badge } from "@/components/ui/badge";
@@ -18,20 +18,25 @@ export function ContactSection() {
         <Reveal variant="soft">
           <SectionHeading
             eyebrow="Links / Contact"
-            title="Close with one clear contact surface and cleaner outbound paths."
-            description="The final section should feel like a confident handoff: brand framing on the left, direct routes to public work and contact on the right."
+            title="A clean handoff to public work, live products, and direct contact."
+            description="This closing section is intentionally simple: where to find the work, how to verify the products, and how to reach me."
           />
         </Reveal>
 
         <div className="mt-14 grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
           <Reveal variant="pop">
             <div className="panel-shell rounded-[2.2rem] border border-white/10 p-6 sm:p-7">
-              <Badge className="w-fit">Brand test</Badge>
-              <p className="mt-5 max-w-xl font-display text-[clamp(1.5rem,4vw,3rem)] leading-none tracking-tight text-foreground">{brandTest}</p>
+              <Badge className="w-fit">{fullName}</Badge>
+              <p className="mt-5 max-w-xl font-display text-[clamp(1.5rem,4vw,3rem)] leading-none tracking-tight text-foreground">
+                AI product engineering, Python automation, and data-backed systems built from Fairfax, VA.
+              </p>
               <div className="soft-divider mt-8" />
-              <div className="mt-8 flex items-center gap-3 text-sm text-muted-foreground">
-                <Mail className="size-4" />
-                Public links and live demos are wired in and ready to use.
+              <div className="mt-8 space-y-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-3">
+                  <Mail className="size-4" />
+                  <span>{emailAddress}</span>
+                </div>
+                <div>{locationLabel}</div>
               </div>
             </div>
           </Reveal>

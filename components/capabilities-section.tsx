@@ -1,24 +1,22 @@
-"use client";
-
-import { capabilityGroups } from "@/content/site";
+import { skillClusters } from "@/content/site";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { ShineCard } from "@/components/animate/shine-card";
 
 export function CapabilitiesSection() {
   return (
-    <section id="systems-capabilities" className="section-shell border-b border-white/8">
+    <section id="stack" className="section-shell border-b border-white/8">
       <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
         <Reveal variant="soft">
           <SectionHeading
-            eyebrow="Systems / Capabilities"
-            title="Capability areas arranged like a product operating map, not a generic skills grid."
-            description="The emphasis stays on what changes product behavior: orchestration, tool use, interface framing, deployment decisions, and the data plumbing that keeps AI trustworthy once it ships."
+            eyebrow="AI / Data Stack"
+            title="A technical stack that connects AI product work to Python automation, analytics, and platform delivery."
+            description="The portfolio is intentionally grounded in shipped tools and measurable business systems rather than inflated keyword lists."
           />
         </Reveal>
 
         <div className="mt-14 grid gap-5 lg:grid-cols-12">
-          {capabilityGroups.map((group, index) => (
+          {skillClusters.map((group, index) => (
             <Reveal
               key={group.title}
               delay={index * 0.08}

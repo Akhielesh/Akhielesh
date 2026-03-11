@@ -1,9 +1,9 @@
 import { ImageResponse } from "next/og";
 
-import { roleSubtitle, roleTitle, siteName } from "@/content/site";
+import { fullName, roleSubtitle, roleTitle } from "@/content/site";
 
 export const dynamic = "force-static";
-export const alt = `${siteName} portfolio`;
+export const alt = `${fullName} portfolio`;
 export const size = {
   width: 1200,
   height: 630
@@ -37,11 +37,11 @@ export default function OpenGraphImage() {
             opacity: 0.7
           }}
         >
-          <span>{siteName}</span>
+          <span>{fullName}</span>
           <span>{roleTitle}</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 28, maxWidth: 920 }}>
-          <div style={{ fontSize: 82, lineHeight: 0.94 }}>AI products with system depth, product taste, and data backbone.</div>
+          <div style={{ fontSize: 82, lineHeight: 0.94 }}>AI products, Python automation, and data systems with measurable impact.</div>
           <div style={{ fontSize: 30, lineHeight: 1.4, opacity: 0.78 }}>{roleSubtitle}</div>
         </div>
       </div>
