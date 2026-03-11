@@ -13,18 +13,22 @@ function pseudoRandom(seed: number) {
   return value - Math.floor(value);
 }
 
+function round(value: number, digits = 3) {
+  return Number(value.toFixed(digits));
+}
+
 export function FloatingParticles({ count = 28, className = "" }: FloatingParticlesProps) {
   const reduceMotion = useReducedMotion();
 
   const particles = useMemo(() => {
     return Array.from({ length: count }, (_, i) => ({
       id: i,
-      x: pseudoRandom(i + 1) * 100,
-      y: pseudoRandom(i + 101) * 100,
-      size: 1 + pseudoRandom(i + 201) * 2,
-      duration: 12 + pseudoRandom(i + 301) * 20,
-      delay: pseudoRandom(i + 401) * 8,
-      opacity: 0.08 + pseudoRandom(i + 501) * 0.18
+      x: round(pseudoRandom(i + 1) * 100),
+      y: round(pseudoRandom(i + 101) * 100),
+      size: round(1 + pseudoRandom(i + 201) * 2),
+      duration: round(12 + pseudoRandom(i + 301) * 20),
+      delay: round(pseudoRandom(i + 401) * 8),
+      opacity: round(0.08 + pseudoRandom(i + 501) * 0.18, 4)
     }));
   }, [count]);
 

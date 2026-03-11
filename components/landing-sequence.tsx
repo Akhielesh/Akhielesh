@@ -2,18 +2,25 @@
 
 import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { introTitles, siteName } from "@/content/site";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-const STORAGE_KEY = "akhielesh-entry-seen";
-const LETTERS_PHASE_MS = 2000;
-const TITLES_START_MS = 2600;
-const TITLE_STEP_MS = 1200;
-const CONTINUE_AFTER_MS = 4200;
-const ENTRY_DURATION_MS = 9600;
+const STORAGE_KEY = "akhielesh-entry-seen-v4";
+const LETTERS_PHASE_MS = 2200;
+const TITLES_START_MS = 2800;
+const TITLE_STEP_MS = 1400;
+const NOTE_START_MS = TITLES_START_MS + introTitles.length * TITLE_STEP_MS + 500;
+const CONTINUE_AFTER_MS = NOTE_START_MS + 2200;
+const TIMELINE_DURATION_MS = CONTINUE_AFTER_MS + 2600;
 const EXIT_DURATION_MS = 420;
+const BUILD_NOTE = "I love building applications and solutions. It's always human-led and AI-powered.";
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
 
 export function LandingSequence() {
   const reduceMotion = useReducedMotion();
@@ -24,11 +31,54 @@ export function LandingSequence() {
   );
   const [dismissed, setDismissed] = useState(false);
   const [phase, setPhase] = useState<"hidden" | "playing" | "closing">("hidden");
-  const [mode, setMode] = useState<"letters" | "titles">("letters");
-  const [titleIndex, setTitleIndex] = useState(0);
-  const [canContinue, setCanContinue] = useState(false);
+  const [timelineMs, setTimelineMs] = useState(0);
+  const [isTimelineHovered, setIsTimelineHovered] = useState(false);
+  const [isScrubbing, setIsScrubbing] = useState(false);
   const letters = useMemo(() => siteName.toUpperCase().split(""), []);
   const hasSeen = mounted ? window.sessionStorage.getItem(STORAGE_KEY) === "1" : false;
+  const rafRef = useRef<number | null>(null);
+  const playbackAnchorRef = useRef<number | null>(null);
+  const playbackOffsetRef = useRef(0);
+  const timelineRef = useRef(0);
+  const timelineTrackRef = useRef<HTMLDivElement | null>(null);
+
+  const mode = timelineMs < LETTERS_PHASE_MS ? "letters" : "titles";
+  const titleIndex =
+    timelineMs < TITLES_START_MS
+      ? 0
+      : Math.min(introTitles.length - 1, Math.floor((timelineMs - TITLES_START_MS) / TITLE_STEP_MS));
+  const showBuildNote = timelineMs >= NOTE_START_MS;
+  const canContinue = timelineMs >= CONTINUE_AFTER_MS;
+  const progress = clamp(timelineMs / TIMELINE_DURATION_MS, 0, 1);
+  const timelineLabels = [
+    { label: "Entry", at: LETTERS_PHASE_MS / TIMELINE_DURATION_MS },
+    { label: "AI lens", at: TITLES_START_MS / TIMELINE_DURATION_MS },
+    { label: "Build note", at: NOTE_START_MS / TIMELINE_DURATION_MS },
+    { label: "Handoff", at: CONTINUE_AFTER_MS / TIMELINE_DURATION_MS }
+  ];
+  const timelineStatus = isScrubbing
+    ? "Scrubbing the intro timeline. Release to let it play forward again."
+    : isTimelineHovered
+      ? "Timeline unlocked. Drag the line to revisit the AI sequence."
+      : canContinue
+        ? "The sequence has landed. Continue when ready."
+        : "The AI intro is still unfolding. Continue unlocks once the build note lands.";
+
+  const updateTimeline = (nextValue: number) => {
+    const clamped = clamp(nextValue, 0, TIMELINE_DURATION_MS);
+    timelineRef.current = clamped;
+    setTimelineMs(clamped);
+  };
+
+  const updateTimelineFromClientX = (clientX: number) => {
+    if (!timelineTrackRef.current) {
+      return;
+    }
+
+    const rect = timelineTrackRef.current.getBoundingClientRect();
+    const ratio = clamp((clientX - rect.left) / rect.width, 0, 1);
+    updateTimeline(ratio * TIMELINE_DURATION_MS);
+  };
 
   useEffect(() => {
     if (!mounted || reduceMotion || dismissed || hasSeen) {
@@ -37,35 +87,62 @@ export function LandingSequence() {
 
     const startTimer = window.setTimeout(() => {
       document.documentElement.style.overflow = "hidden";
+      playbackAnchorRef.current = performance.now();
+      playbackOffsetRef.current = 0;
+      timelineRef.current = 0;
+      setTimelineMs(0);
+      setIsTimelineHovered(false);
+      setIsScrubbing(false);
       setPhase("playing");
     }, 40);
 
     return () => {
       window.clearTimeout(startTimer);
+      if (rafRef.current) {
+        window.cancelAnimationFrame(rafRef.current);
+      }
       document.documentElement.style.overflow = "";
     };
   }, [dismissed, hasSeen, mounted, reduceMotion]);
 
   useEffect(() => {
-    if (phase !== "playing") {
+    if (phase !== "playing" || isScrubbing || timelineRef.current >= TIMELINE_DURATION_MS) {
       return;
     }
 
-    const timers = [
-      window.setTimeout(() => setMode("titles"), LETTERS_PHASE_MS),
-      ...introTitles.map((_, index) =>
-        window.setTimeout(() => {
-          setTitleIndex(index);
-        }, TITLES_START_MS + index * TITLE_STEP_MS)
-      ),
-      window.setTimeout(() => setCanContinue(true), CONTINUE_AFTER_MS),
-      window.setTimeout(() => setPhase("closing"), ENTRY_DURATION_MS)
-    ];
+    playbackAnchorRef.current = performance.now();
+    playbackOffsetRef.current = timelineRef.current;
+
+    const step = (now: number) => {
+      if (playbackAnchorRef.current === null) {
+        return;
+      }
+
+      const elapsed = now - playbackAnchorRef.current;
+      const nextValue = playbackOffsetRef.current + elapsed;
+
+      if (nextValue >= TIMELINE_DURATION_MS) {
+        updateTimeline(TIMELINE_DURATION_MS);
+        rafRef.current = null;
+        playbackAnchorRef.current = null;
+        return;
+      }
+
+      updateTimeline(nextValue);
+      rafRef.current = window.requestAnimationFrame(step);
+    };
+
+    rafRef.current = window.requestAnimationFrame(step);
 
     return () => {
-      timers.forEach((timer) => window.clearTimeout(timer));
+      if (rafRef.current) {
+        window.cancelAnimationFrame(rafRef.current);
+      }
+
+      rafRef.current = null;
+      playbackAnchorRef.current = null;
     };
-  }, [phase]);
+  }, [isScrubbing, phase]);
 
   useEffect(() => {
     if (phase !== "closing") {
@@ -75,7 +152,6 @@ export function LandingSequence() {
     const exitTimer = window.setTimeout(() => {
       window.sessionStorage.setItem(STORAGE_KEY, "1");
       document.documentElement.style.overflow = "";
-      setCanContinue(false);
       setDismissed(true);
       setPhase("hidden");
     }, EXIT_DURATION_MS);
@@ -93,6 +169,7 @@ export function LandingSequence() {
     <AnimatePresence>
       {phase !== "hidden" ? (
         <motion.div
+          data-intro-overlay
           initial={{ opacity: 0 }}
           animate={phase === "closing" ? { opacity: 0 } : { opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -138,6 +215,7 @@ export function LandingSequence() {
                   <p className="eyebrow-label">Current lens</p>
                   <AnimatePresence mode="wait">
                     <motion.div
+                      data-intro-title
                       key={introTitles[titleIndex]}
                       initial={{ opacity: 0, y: 26, scale: 0.985 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -152,10 +230,45 @@ export function LandingSequence() {
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-                    className="mt-5 max-w-xl text-sm leading-7 text-muted-foreground"
+                    className="mt-5 max-w-2xl text-sm leading-7 text-muted-foreground"
                   >
-                    Systems, interfaces, orchestration, and the product judgment that keeps AI work usable once it leaves the demo.
+                    AI systems deserve real product thinking, clear operator control, and interfaces that still feel serious after the demo.
                   </motion.p>
+
+                  <AnimatePresence>
+                    {showBuildNote ? (
+                      <motion.div
+                        data-intro-build-note
+                        key="build-note"
+                        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -18, scale: 0.98 }}
+                        transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+                        className="mt-8 w-full max-w-3xl rounded-[1.8rem] border border-white/[0.12] bg-white/[0.04] px-5 py-5 shadow-[0_28px_80px_-46px_rgba(0,0,0,0.92)] backdrop-blur-xl"
+                      >
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                          <span className="eyebrow-label">Build note</span>
+                          <span className="rounded-full border border-[#f0b56f]/30 bg-[#f0b56f]/10 px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-[#f6d3a2]">
+                            Human-led
+                          </span>
+                          <span className="rounded-full border border-[#8ac5cf]/30 bg-[#8ac5cf]/10 px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-[#b7e0e6]">
+                            AI-powered
+                          </span>
+                        </div>
+
+                        <p className="mt-4 font-display text-[clamp(1.45rem,3vw,2.5rem)] leading-[1.02] tracking-tight text-foreground">
+                          I love building applications and solutions.
+                        </p>
+                        <p className="mt-3 text-sm leading-7 text-foreground/80 sm:text-base">
+                          It&apos;s always <span className="text-[#f6d3a2]">human-led</span> and{" "}
+                          <span className="text-[#b7e0e6]">AI-powered</span>.
+                        </p>
+                        <p className="mt-4 text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                          {BUILD_NOTE}
+                        </p>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
                 </div>
               )}
             </div>
@@ -166,22 +279,106 @@ export function LandingSequence() {
               transition={{ delay: 0.72, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="mx-auto mt-10 max-w-2xl text-center text-sm leading-7 text-muted-foreground sm:text-base"
             >
-              A product-minded AI portfolio built around systems, interfaces, and live work that still feels active when the demo tab is closed.
+              A product-minded AI portfolio built around applications, workflow systems, and live product work that still feels active when the demo tab is closed.
             </motion.p>
 
             <div className="mx-auto mt-10 max-w-2xl">
-              <div className="h-px w-full overflow-hidden rounded-full bg-white/8">
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: ENTRY_DURATION_MS / 1000, ease: "linear" }}
-                  className="h-full origin-left bg-gradient-to-r from-[#f0b56f] via-white/80 to-[#8ac5cf]"
-                />
+              <div
+                className="group"
+                onPointerEnter={() => setIsTimelineHovered(true)}
+                onPointerLeave={() => setIsTimelineHovered(false)}
+              >
+                <div
+                  ref={timelineTrackRef}
+                  data-intro-timeline-track
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    setIsScrubbing(true);
+                    updateTimelineFromClientX(event.clientX);
+                  }}
+                  onPointerMove={(event) => {
+                    if (!isScrubbing) {
+                      return;
+                    }
+
+                    updateTimelineFromClientX(event.clientX);
+                  }}
+                  onPointerUp={(event) => {
+                    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                      event.currentTarget.releasePointerCapture(event.pointerId);
+                    }
+
+                    playbackOffsetRef.current = timelineRef.current;
+                    setIsScrubbing(false);
+                  }}
+                  onPointerCancel={(event) => {
+                    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                      event.currentTarget.releasePointerCapture(event.pointerId);
+                    }
+
+                    playbackOffsetRef.current = timelineRef.current;
+                    setIsScrubbing(false);
+                  }}
+                  className={cn(
+                    "relative h-8 transition-all duration-300",
+                    isTimelineHovered || isScrubbing
+                      ? "cursor-grab"
+                      : "cursor-default"
+                  )}
+                >
+                  <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 rounded-full bg-white/10" />
+                  <div
+                    className={cn(
+                      "absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#f0b56f] via-white/80 to-[#8ac5cf] shadow-[0_0_18px_rgba(240,181,111,0.22)] transition-all duration-300",
+                      isTimelineHovered || isScrubbing ? "h-[3px]" : "h-[2px]"
+                    )}
+                    style={{ width: `${progress * 100}%` }}
+                  />
+                  <motion.div
+                    animate={{
+                      opacity: isTimelineHovered || isScrubbing ? 1 : 0.4,
+                      height: isTimelineHovered || isScrubbing ? 18 : 12
+                    }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute top-1/2 w-px -translate-y-1/2 bg-gradient-to-b from-[#f0b56f] via-white to-[#8ac5cf] shadow-[0_0_18px_rgba(138,197,207,0.24)]"
+                    style={{ left: `${progress * 100}%` }}
+                  />
+                </div>
+
+                <AnimatePresence>
+                  {isTimelineHovered || isScrubbing ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                      className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"
+                    >
+                      <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">{timelineStatus}</p>
+                      <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
+                        {timelineLabels.map((item) => (
+                          <span
+                            key={item.label}
+                            className={cn(
+                              "rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.22em] transition-colors duration-300",
+                              progress >= item.at
+                                ? "border-white/14 bg-white/[0.08] text-foreground/82"
+                                : "border-white/[0.08] bg-transparent text-muted-foreground"
+                            )}
+                          >
+                            {item.label}
+                          </span>
+                        ))}
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
               </div>
 
               <div className="mt-5 flex flex-col items-center justify-between gap-4 sm:flex-row">
-                <p className="text-xs uppercase tracking-[0.26em] text-muted-foreground">
-                  {canContinue ? "The intro has landed. Continue when ready." : "The sequence is still unfolding. Continue unlocks once the titles settle."}
+                <p data-intro-status className="text-xs uppercase tracking-[0.26em] text-muted-foreground">
+                  {timelineStatus}
                 </p>
                 <Button
                   size="lg"
