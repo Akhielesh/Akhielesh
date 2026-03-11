@@ -8,18 +8,23 @@ interface FloatingParticlesProps {
   className?: string;
 }
 
+function pseudoRandom(seed: number) {
+  const value = Math.sin(seed * 12.9898) * 43758.5453;
+  return value - Math.floor(value);
+}
+
 export function FloatingParticles({ count = 28, className = "" }: FloatingParticlesProps) {
   const reduceMotion = useReducedMotion();
 
   const particles = useMemo(() => {
     return Array.from({ length: count }, (_, i) => ({
       id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: 1 + Math.random() * 2,
-      duration: 12 + Math.random() * 20,
-      delay: Math.random() * 8,
-      opacity: 0.08 + Math.random() * 0.18
+      x: pseudoRandom(i + 1) * 100,
+      y: pseudoRandom(i + 101) * 100,
+      size: 1 + pseudoRandom(i + 201) * 2,
+      duration: 12 + pseudoRandom(i + 301) * 20,
+      delay: pseudoRandom(i + 401) * 8,
+      opacity: 0.08 + pseudoRandom(i + 501) * 0.18
     }));
   }, [count]);
 

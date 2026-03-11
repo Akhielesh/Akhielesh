@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 
-import { navigation, siteName } from "@/content/site";
+import { navigation, siteName, type SectionId } from "@/content/site";
 import { cn } from "@/lib/utils";
 
 export function SiteNav() {
@@ -21,7 +21,7 @@ export function SiteNav() {
 
     const syncHash = () => {
       const hash = window.location.hash.replace("#", "");
-      if (hash && sectionIds.includes(hash)) {
+      if (hash && sectionIds.includes(hash as SectionId)) {
         setActive(hash);
       }
     };
