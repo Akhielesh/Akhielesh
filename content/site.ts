@@ -122,10 +122,10 @@ export const heroSummary =
   "I build recruiter-legible systems with measurable outcomes: connector-aware AI products, workflow automation, data profiling platforms, and analytics surfaces that help teams act faster.";
 export const introTitles = [
   "AI Product Engineer",
-  "Serious AI Product Systems",
-  "Search, Automation, and Orchestration",
+  "AI Search, Automation, and Workflows",
+  "Products Built for Real Use",
   "Human-Led Product Thinking",
-  "AI-Powered Applications"
+  "Applications, Systems, and Scale"
 ];
 export const siteDescription =
   "Portfolio for Akhielesh Srirangam, an AI Product Engineer in Fairfax, VA building AI search products, Python automation, data-platform workflows, and analytics systems.";

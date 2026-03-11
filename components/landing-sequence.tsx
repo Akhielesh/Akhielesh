@@ -8,7 +8,7 @@ import { introTitles, siteName } from "@/content/site";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-const STORAGE_KEY = "akhielesh-entry-seen-v5";
+const STORAGE_KEY = "akhielesh-entry-seen-v6";
 const LETTERS_PHASE_MS = 2200;
 const TITLES_START_MS = 2800;
 const TITLE_STEP_MS = 1400;
@@ -16,7 +16,7 @@ const NOTE_START_MS = TITLES_START_MS + introTitles.length * TITLE_STEP_MS + 500
 const CONTINUE_AFTER_MS = NOTE_START_MS + 2200;
 const TIMELINE_DURATION_MS = CONTINUE_AFTER_MS + 2600;
 const EXIT_DURATION_MS = 420;
-const BUILD_NOTE = "I love building applications and solutions. It's always human-led and AI-powered.";
+const BUILD_NOTE = "\"I love building applications and solutions. It's always human-led and AI-powered.\"";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -53,17 +53,17 @@ export function LandingSequence() {
   const progress = clamp(timelineMs / TIMELINE_DURATION_MS, 0, 1);
   const timelineLabels = [
     { label: "Entry", at: LETTERS_PHASE_MS / TIMELINE_DURATION_MS },
-    { label: "AI lens", at: TITLES_START_MS / TIMELINE_DURATION_MS },
-    { label: "Build note", at: NOTE_START_MS / TIMELINE_DURATION_MS },
+    { label: "Focus", at: TITLES_START_MS / TIMELINE_DURATION_MS },
+    { label: "Tagline", at: NOTE_START_MS / TIMELINE_DURATION_MS },
     { label: "Handoff", at: CONTINUE_AFTER_MS / TIMELINE_DURATION_MS }
   ];
   const timelineStatus = isScrubbing
     ? "Scrubbing the intro timeline. Release to let it play forward again."
     : isTimelineHovered
-      ? "Timeline unlocked. Drag the line to revisit the AI sequence."
+      ? "Timeline unlocked. Drag the line to revisit the intro."
       : canContinue
         ? "The sequence has landed. Continue when ready."
-        : "The AI intro is still unfolding. Continue unlocks once the build note lands.";
+        : "The intro is still unfolding. Continue unlocks once the tagline lands.";
 
   const updateTimeline = (nextValue: number) => {
     const clamped = clamp(nextValue, 0, TIMELINE_DURATION_MS);
@@ -256,7 +256,7 @@ export function LandingSequence() {
                     transition={{ delay: 0.3, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                     className="mt-5 max-w-2xl text-sm leading-7 text-muted-foreground"
                   >
-                    AI systems deserve real product thinking, clear operator control, and interfaces that still feel serious after the demo.
+                    I care about useful products, clear workflows, and AI that earns trust in real use.
                   </motion.p>
 
                   <AnimatePresence>
@@ -271,7 +271,7 @@ export function LandingSequence() {
                         className="mt-8 w-full max-w-3xl rounded-[1.8rem] border border-white/[0.12] bg-white/[0.04] px-5 py-5 shadow-[0_28px_80px_-46px_rgba(0,0,0,0.92)] backdrop-blur-xl"
                       >
                         <div className="flex flex-wrap items-center justify-center gap-2">
-                          <span className="eyebrow-label">Build note</span>
+                          <span className="eyebrow-label">Personal tagline</span>
                           <span className="rounded-full border border-[#f0b56f]/30 bg-[#f0b56f]/10 px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-[#f6d3a2]">
                             Human-led
                           </span>
@@ -280,15 +280,11 @@ export function LandingSequence() {
                           </span>
                         </div>
 
-                        <p className="mt-4 font-display text-[clamp(1.45rem,3vw,2.5rem)] leading-[1.02] tracking-tight text-foreground">
-                          I love building applications and solutions.
-                        </p>
-                        <p className="mt-3 text-sm leading-7 text-foreground/80 sm:text-base">
-                          It&apos;s always <span className="text-[#f6d3a2]">human-led</span> and{" "}
-                          <span className="text-[#b7e0e6]">AI-powered</span>.
+                        <p className="mt-4 font-display text-[clamp(1.45rem,3vw,2.5rem)] leading-[1.08] tracking-tight text-foreground">
+                          {BUILD_NOTE}
                         </p>
                         <p className="mt-4 text-xs uppercase tracking-[0.24em] text-muted-foreground">
-                          {BUILD_NOTE}
+                          A personal line that defines how I build.
                         </p>
                       </motion.div>
                     ) : null}
@@ -303,7 +299,7 @@ export function LandingSequence() {
               transition={{ delay: 0.72, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="mx-auto mt-10 max-w-2xl text-center text-sm leading-7 text-muted-foreground sm:text-base"
             >
-              A product-minded AI portfolio built around applications, workflow systems, and live product work that still feels active when the demo tab is closed.
+              A portfolio centered on applications, product systems, automation, and work that is built to hold up in real use.
             </motion.p>
 
             <div className="mx-auto mt-10 max-w-2xl">
@@ -361,19 +357,10 @@ export function LandingSequence() {
                   <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 rounded-full bg-white/10" />
                   <div
                     className={cn(
-                      "absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#f0b56f] via-white/80 to-[#8ac5cf] shadow-[0_0_18px_rgba(240,181,111,0.22)] transition-all duration-300",
+                      "absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#f0b56f] via-white/80 to-[#8ac5cf] shadow-[0_0_18px_rgba(240,181,111,0.22)] transition-[height,box-shadow] duration-300",
                       isTimelineHovered || isScrubbing ? "h-[3px]" : "h-[2px]"
                     )}
                     style={{ width: `${progress * 100}%` }}
-                  />
-                  <motion.div
-                    animate={{
-                      opacity: isTimelineHovered || isScrubbing ? 1 : 0.4,
-                      height: isTimelineHovered || isScrubbing ? 18 : 12
-                    }}
-                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute top-1/2 w-px -translate-y-1/2 bg-gradient-to-b from-[#f0b56f] via-white to-[#8ac5cf] shadow-[0_0_18px_rgba(138,197,207,0.24)]"
-                    style={{ left: `${progress * 100}%` }}
                   />
                 </div>
 
