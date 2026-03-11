@@ -129,7 +129,10 @@ export const introTitles = [
 ];
 export const siteDescription =
   "Portfolio for Akhielesh Srirangam, an AI Product Engineer in Fairfax, VA building AI search products, Python automation, data-platform workflows, and analytics systems.";
-export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com";
+export const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  process.env.CF_PAGES_URL ??
+  "https://example.com";
 export const githubUsername = "Akhielesh";
 export const githubProfileUrl = "https://github.com/Akhielesh";
 export const linkedinProfileUrl = "https://www.linkedin.com/in/akhielesh-srirangam-a2110471/";

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "deploy:cloudflare": "sh -c 'npm run build && npx wrangler pages deploy ./out --project-name \"${CLOUDFLARE_PAGES_PROJECT:-akhielesh-portfolio}\"'",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "next typegen && node -e \"const fs=require('fs');fs.mkdirSync('.next/types',{recursive:true});const p='.next/types/cache-life.d.ts';if(!fs.existsSync(p))fs.writeFileSync(p,'export {}\\n');\" && tsc --noEmit"

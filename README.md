@@ -17,17 +17,41 @@ pnpm typecheck
 pnpm build
 ```
 
-## GitHub Pages deployment
+## Cloudflare Pages deployment
 
-This repo is prepared for static deployment through GitHub Pages.
+This repo is now prepared for static deployment through Cloudflare Pages so the source repo can stay private.
 
-- The site builds with `output: "export"` and emits a static `out/` directory.
-- The workflow at `.github/workflows/deploy-pages.yml` deploys on pushes to `main` or `master`.
-- The workflow automatically derives the correct `basePath` and `siteUrl` for either:
-  - a user/org site such as `https://owner.github.io`
-  - a project site such as `https://owner.github.io/repository-name`
-- If you later use a custom domain, set repository variables:
-  - `PAGES_SITE_URL` to the full public origin, for example `https://portfolio.example.com`
-  - `PAGES_BASE_PATH` only if the site should still live under a subpath
+- The site still builds with `output: "export"` and emits a static `out/` directory.
+- The workflow at `.github/workflows/deploy-cloudflare-pages.yml` deploys that static export to Cloudflare Pages on pushes to `main` or `master`.
+- The workflow expects the site to live at the root of the domain, not under `/Akhielesh`.
+- `_redirects` includes rules that strip `/Akhielesh` from incoming paths on the Cloudflare domain, which helps preserve old project-site path shapes once traffic reaches the new host.
 
-If you add a custom domain, also configure that domain in your GitHub Pages settings.
+### Required GitHub configuration
+
+Add these repository settings before relying on CI deploys:
+
+- Repository secret: `CLOUDFLARE_API_TOKEN`
+- Repository variable: `CLOUDFLARE_ACCOUNT_ID`
+- Optional repository variable: `CLOUDFLARE_PAGES_PROJECT`
+  - defaults to `akhielesh-portfolio` if omitted
+- Optional repository variable: `SITE_URL`
+  - set this to your final public origin, for example `https://akhielesh.com`
+
+### Local deployment
+
+If you are already authenticated with Wrangler:
+
+```bash
+CLOUDFLARE_PAGES_PROJECT=akhielesh-portfolio npm run deploy:cloudflare
+```
+
+### Legacy GitHub Pages URL redirect
+
+If you want `https://akhielesh.github.io/Akhielesh/` to redirect to the new Cloudflare/custom-domain site, the old GitHub Pages URL must stay backed by a tiny public redirect site. The clean setup is:
+
+1. Move the real portfolio source to a private repo.
+2. Keep a separate public GitHub Pages repo that only contains a redirect page to the new domain.
+
+You cannot keep the current repo private and still have the same GitHub Pages URL serve redirects, because GitHub Free Pages only serves public repos.
+
+A ready-to-use redirect template lives in `legacy-github-redirect-template/`.

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Redirecting to Akhielesh</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0d1117;
+        --fg: #f4efe7;
+        --muted: rgba(244, 239, 231, 0.68);
+        --line: rgba(255, 255, 255, 0.12);
+        --warm: #f0b56f;
+        --cool: #8ac5cf;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at 18% 18%, rgba(240, 181, 111, 0.16), transparent 22%),
+          radial-gradient(circle at 82% 12%, rgba(138, 197, 207, 0.16), transparent 24%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 30%),
+          var(--bg);
+        color: var(--fg);
+        font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+      }
+
+      .panel {
+        width: min(100%, 720px);
+        padding: 32px;
+        border-radius: 32px;
+        border: 1px solid var(--line);
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 46%),
+          rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(16px);
+      }
+
+      .eyebrow {
+        margin: 0;
+        font-size: 11px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      h1 {
+        margin: 18px 0 0;
+        font-size: clamp(2rem, 6vw, 4rem);
+        line-height: 0.94;
+        font-family: "Instrument Serif", "Times New Roman", serif;
+        letter-spacing: 0.02em;
+      }
+
+      p {
+        margin: 18px 0 0;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      a {
+        color: var(--fg);
+      }
+
+      .line {
+        margin-top: 24px;
+        height: 2px;
+        width: 100%;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .line::after {
+        content: "";
+        display: block;
+        height: 100%;
+        width: 38%;
+        background: linear-gradient(90deg, var(--warm), rgba(255, 255, 255, 0.82), var(--cool));
+        animation: slide 1.4s ease-in-out infinite;
+      }
+
+      @keyframes slide {
+        0%,
+        100% {
+          transform: translateX(-8%);
+        }
+        50% {
+          transform: translateX(170%);
+        }
+      }
+    </style>
+    <script>
+      const TARGET_ORIGIN = "https://akhielesh-portfolio.pages.dev";
+      const LEGACY_BASE = "/Akhielesh";
+
+      const current = new URL(window.location.href);
+      const nextPath = current.pathname.startsWith(LEGACY_BASE)
+        ? current.pathname.slice(LEGACY_BASE.length) || "/"
+        : current.pathname || "/";
+      const nextUrl = `${TARGET_ORIGIN}${nextPath}${current.search}${current.hash}`;
+
+      window.location.replace(nextUrl);
+    </script>
+  </head>
+  <body>
+    <main class="panel">
+      <p class="eyebrow">Legacy portfolio route</p>
+      <h1>Redirecting to the new Akhielesh portfolio.</h1>
+      <p>
+        If you are not redirected automatically, open
+        <a href="https://akhielesh-portfolio.pages.dev">akhielesh-portfolio.pages.dev</a>.
+      </p>
+      <div class="line" aria-hidden="true"></div>
+    </main>
+  </body>
+</html>
