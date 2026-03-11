@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting...</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <script>
+      const TARGET_ORIGIN = "https://akhielesh.com";
+      const LEGACY_BASE = "/Akhielesh";
+
+      const current = new URL(window.location.href);
+      const nextPath = current.pathname.startsWith(LEGACY_BASE)
+        ? current.pathname.slice(LEGACY_BASE.length) || "/"
+        : current.pathname || "/";
+      const nextUrl = `${TARGET_ORIGIN}${nextPath}${current.search}${current.hash}`;
+
+      window.location.replace(nextUrl);
+    </script>
+  </head>
+  <body></body>
+</html>
