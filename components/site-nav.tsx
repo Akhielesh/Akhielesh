@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 export function SiteNav() {
   const [active, setActive] = useState<string>("hero");
   const pathname = usePathname();
+  const onAdminPage = pathname.startsWith("/adminak");
   const onHomePage = pathname === "/";
   const sectionIds = useMemo(() => navigation.map((item) => item.id), []);
 
@@ -108,6 +109,10 @@ export function SiteNav() {
       window.removeEventListener("resize", onScrollOrResize);
     };
   }, [onHomePage, sectionIds]);
+
+  if (onAdminPage) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-50 px-4 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6">

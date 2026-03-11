@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Instrument_Serif } from "next/font/google";
 import { MotionConfig } from "motion/react";
 import { fullName, roleTitle, siteDescription, siteUrl } from "@/content/site";
+import { AnalyticsTracker } from "@/components/analytics-tracker";
 import { SiteNav } from "@/components/site-nav";
 
 import "./globals.css";
@@ -74,6 +75,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className={`${sansFont.variable} ${monoFont.variable} ${displayFont.variable} antialiased`}>
         <MotionConfig reducedMotion="user">
+          <AnalyticsTracker />
           <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden will-change-transform" style={{ contain: "strict" }}>
             <div className="absolute left-[8%] top-20 size-72 rounded-full bg-[#f0b56f]/10 blur-[110px]" />
             <div className="absolute bottom-0 right-[12%] size-80 rounded-full bg-[#8ac5cf]/10 blur-[120px]" />
