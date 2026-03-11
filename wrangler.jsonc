@@ -1,6 +1,14 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
+  "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "akhielesh-portfolio",
+  "pages_build_output_dir": "./out",
   "compatibility_date": "2026-03-11",
-  "pages_build_output_dir": "./out"
+  "d1_databases": [
+    {
+      "binding": "ANALYTICS_DB",
+      "database_name": "akhielesh-portfolio-analytics",
+      "database_id": "30c9f8e8-2ac9-4815-93af-e3d432e2f758",
+      "migrations_dir": "migrations"
+    }
+  ]
 }

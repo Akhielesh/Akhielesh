@@ -8,7 +8,6 @@ import { FloatingParticles } from "@/components/animate/floating-particles";
 import { Button } from "@/components/ui/button";
 import {
   fetchAnalyticsSnapshot,
-  hasAnalyticsBackend,
   type AnalyticsDashboardSnapshot,
   type AnalyticsRange,
   type DeviceMetric,
@@ -20,7 +19,6 @@ import {
 import { cn } from "@/lib/utils";
 
 const ADMIN_WORDMARKS = ["AKHIELESH", "AWESOMEST PERSON"];
-const ADMIN_PASSWORD_HASH = "613c4ede822a0c064a1cae51657ca7db3373d77bef2db196079c2c3f3c21ecb6";
 const ADMIN_UNLOCK_KEY = "adminak-unlocked";
 const ADMIN_PASSWORD_KEY = "adminak-password";
 const DEFAULT_RANGE: AnalyticsRange = "7d";
@@ -87,14 +85,6 @@ function projectLocation(location: LocationPoint, width: number, height: number)
     x: ((location.longitude + 180) / 360) * width,
     y: ((90 - location.latitude) / 180) * height
   };
-}
-
-async function sha256Hex(value: string) {
-  const encoded = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest("SHA-256", encoded);
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
 }
 
 function rangeLabel(range: AnalyticsRange) {
@@ -342,24 +332,30 @@ function DeviceBars({ devices }: { devices: DeviceMetric[] }) {
         </StatusPill>
       </div>
 
-      <div className="mt-7 space-y-4">
-        {devices.map((device) => (
-          <div key={device.label}>
-            <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-              <span className="text-foreground/84">{device.label}</span>
-              <span className="text-muted-foreground">
-                {formatNumber(device.visits)} / {formatPercent(device.share * 100)}
-              </span>
+      {devices.length > 0 ? (
+        <div className="mt-7 space-y-4">
+          {devices.map((device) => (
+            <div key={device.label}>
+              <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                <span className="text-foreground/84">{device.label}</span>
+                <span className="text-muted-foreground">
+                  {formatNumber(device.visits)} / {formatPercent(device.share * 100)}
+                </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-white/8">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#f0b56f] via-white/80 to-[#8ac5cf]"
+                  style={{ width: `${device.share * 100}%` }}
+                />
+              </div>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-white/8">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#f0b56f] via-white/80 to-[#8ac5cf]"
-                style={{ width: `${device.share * 100}%` }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-7 text-sm leading-7 text-muted-foreground">
+          No device data has been recorded in the selected range yet.
+        </p>
+      )}
     </section>
   );
 }
@@ -374,22 +370,28 @@ function ReferrerList({ referrers }: { referrers: ReferrerMetric[] }) {
         Where traffic is coming from
       </h2>
 
-      <div className="mt-7 space-y-4">
-        {referrers.map((referrer) => (
-          <div key={referrer.source} className="rounded-[1.3rem] border border-white/10 bg-white/[0.03] px-4 py-4">
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <span className="text-foreground/84">{referrer.source}</span>
-              <span className="text-muted-foreground">{formatNumber(referrer.visits)} visits</span>
+      {referrers.length > 0 ? (
+        <div className="mt-7 space-y-4">
+          {referrers.map((referrer) => (
+            <div key={referrer.source} className="rounded-[1.3rem] border border-white/10 bg-white/[0.03] px-4 py-4">
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="text-foreground/84">{referrer.source}</span>
+                <span className="text-muted-foreground">{formatNumber(referrer.visits)} visits</span>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/8">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#8ac5cf] to-[#f0b56f]"
+                  style={{ width: `${(referrer.visits / max) * 100}%` }}
+                />
+              </div>
             </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/8">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#8ac5cf] to-[#f0b56f]"
-                style={{ width: `${(referrer.visits / max) * 100}%` }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-7 text-sm leading-7 text-muted-foreground">
+          No referral sources have been recorded in the selected range yet.
+        </p>
+      )}
     </section>
   );
 }
@@ -441,22 +443,28 @@ function PageTable({ pages }: { pages: AnalyticsDashboardSnapshot["pages"] }) {
       </div>
 
       <div className="mt-7 overflow-hidden rounded-[1.5rem] border border-white/10">
-        {pages.map((page, index) => (
-          <div
-            key={page.path}
-            className={cn(
-              "grid gap-2 px-4 py-4 text-sm md:grid-cols-[minmax(0,1fr)_auto_auto]",
-              index !== pages.length - 1 && "border-b border-white/10"
-            )}
-          >
-            <div className="min-w-0">
-              <p className="truncate text-foreground/92">{page.title}</p>
-              <p className="mt-1 truncate font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{page.path}</p>
+        {pages.length > 0 ? (
+          pages.map((page, index) => (
+            <div
+              key={page.path}
+              className={cn(
+                "grid gap-2 px-4 py-4 text-sm md:grid-cols-[minmax(0,1fr)_auto_auto]",
+                index !== pages.length - 1 && "border-b border-white/10"
+              )}
+            >
+              <div className="min-w-0">
+                <p className="truncate text-foreground/92">{page.title}</p>
+                <p className="mt-1 truncate font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{page.path}</p>
+              </div>
+              <div className="text-muted-foreground">{formatNumber(page.views)} views</div>
+              <div className="text-muted-foreground">{formatNumber(page.uniqueVisitors)} uniques</div>
             </div>
-            <div className="text-muted-foreground">{formatNumber(page.views)} views</div>
-            <div className="text-muted-foreground">{formatNumber(page.uniqueVisitors)} uniques</div>
+          ))
+        ) : (
+          <div className="px-4 py-6 text-sm leading-7 text-muted-foreground">
+            No page traffic has been recorded in the selected range yet.
           </div>
-        ))}
+        )}
       </div>
     </section>
   );
@@ -476,9 +484,7 @@ function ArcTelemetryCore({ snapshot }: { snapshot: AnalyticsDashboardSnapshot }
               Adminak reactor
             </h2>
           </div>
-          <StatusPill tone={snapshot.source === "live" ? "cool" : "neutral"}>
-            {snapshot.source === "live" ? "Live feed" : "Preview feed"}
-          </StatusPill>
+          <StatusPill tone="cool">Live feed</StatusPill>
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-center">
@@ -722,6 +728,7 @@ export function AdminAkExperience() {
         }
       ]
     : [];
+  const hasRecordedTraffic = (snapshot?.summary.pageviews ?? 0) > 0;
 
   const handleUnlock = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -729,18 +736,17 @@ export function AdminAkExperience() {
     setError(null);
 
     try {
-      const hash = await sha256Hex(passwordInput);
-
-      if (hash !== ADMIN_PASSWORD_HASH) {
-        setError("Incorrect Adminak password.");
-        return;
-      }
+      const candidatePassword = passwordInput.trim();
+      const nextSnapshot = await fetchAnalyticsSnapshot(range, candidatePassword);
 
       window.sessionStorage.setItem(ADMIN_UNLOCK_KEY, "1");
-      window.sessionStorage.setItem(ADMIN_PASSWORD_KEY, passwordInput);
+      window.sessionStorage.setItem(ADMIN_PASSWORD_KEY, candidatePassword);
       setTransientUnlock(true);
-      setTransientPassword(passwordInput);
-      setRefreshIndex((current) => current + 1);
+      setTransientPassword(candidatePassword);
+      setSnapshot(nextSnapshot);
+      setPasswordInput("");
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Incorrect Adminak password.");
     } finally {
       setSubmitting(false);
     }
@@ -823,9 +829,7 @@ export function AdminAkExperience() {
               </form>
 
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                <StatusPill tone={hasAnalyticsBackend ? "cool" : "neutral"}>
-                  {hasAnalyticsBackend ? "Live backend configured" : "Preview feed until backend is connected"}
-                </StatusPill>
+                <StatusPill tone="cool">Cloudflare D1 + Pages Functions</StatusPill>
                 <StatusPill tone="neutral">No cookie prompt required for anonymous telemetry</StatusPill>
               </div>
 
@@ -852,9 +856,7 @@ export function AdminAkExperience() {
             <div>
               <div className="flex flex-wrap items-center gap-3">
                 <StatusPill tone="warm">Adminak // telemetry command deck</StatusPill>
-                <StatusPill tone={snapshot?.source === "live" ? "cool" : "neutral"}>
-                  {snapshot?.source === "live" ? "Live geo analytics" : "Preview analytics shell"}
-                </StatusPill>
+                <StatusPill tone="cool">Live geo analytics</StatusPill>
               </div>
               <h1 className="mt-5 font-display text-[clamp(2.4rem,6vw,5rem)] leading-[0.92] tracking-tight text-foreground">
                 Recruiter signal, product attention, and regional traffic in one deck.
@@ -883,21 +885,13 @@ export function AdminAkExperience() {
           </div>
         </div>
 
-        {!hasAnalyticsBackend ? (
-          <div className="mt-6 rounded-[1.6rem] border border-white/10 bg-white/[0.03] px-5 py-4 text-sm leading-7 text-muted-foreground">
-            Preview mode is active because `NEXT_PUBLIC_ANALYTICS_API_BASE` is not configured yet. The dashboard layout is
-            wired and ready; once the external analytics endpoint is connected, this view will switch to live traffic,
-            region, city, and trend data automatically.
-          </div>
-        ) : null}
-
         {error && !snapshot ? (
           <div className="mt-6">
             <EmptyDashboardState detail={error} />
           </div>
         ) : null}
 
-        {snapshot ? (
+        {snapshot && hasRecordedTraffic ? (
           <>
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {summaryCards.map((card) => (
@@ -915,11 +909,11 @@ export function AdminAkExperience() {
               <div className="grid gap-6">
                 <MetricCard
                   label="Top location"
-                  value={topLocation ? `${topLocation.city}, ${topLocation.region}` : "No signal"}
+                  value={topLocation ? `${topLocation.city}, ${topLocation.region}` : "No geo data"}
                   detail={
                     topLocation
                       ? `${formatNumber(topLocation.visits)} visits from the strongest geo hotspot in the current range.`
-                      : "Location data has not arrived yet."
+                      : "Cloudflare has not attached location coordinates to any recorded visits in the current range."
                   }
                   accent="cool"
                 />
@@ -936,6 +930,10 @@ export function AdminAkExperience() {
               <PulseFeed pulse={snapshot.pulse} />
             </div>
           </>
+        ) : snapshot ? (
+          <div className="mt-6">
+            <EmptyDashboardState detail="No anonymous traffic has been recorded yet. Open the public portfolio from a normal browser tab and the live dashboard will begin filling with actual visits, timestamps, referrers, pages, and regions." />
+          </div>
         ) : loadingSnapshot ? (
           <div className="mt-6">
             <EmptyDashboardState detail="Telemetry is loading. The dashboard is waiting for the first snapshot." />
