@@ -1,5 +1,5 @@
-"use client";
-
+// ⚡ Bolt Optimization: Removed "use client" directive to render this component on the server.
+// Pushing layout and static text mapping to the server reduces JS bundle size and hydration overhead.
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
