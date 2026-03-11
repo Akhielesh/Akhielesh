@@ -32,7 +32,7 @@
 
   html {
     scroll-behavior: smooth;
-    scroll-padding-top: 7.5rem;
+    scroll-padding-top: calc(7.5rem + env(safe-area-inset-top));
   }
 
   body {
@@ -51,6 +51,12 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+  }
+
+  main {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
 
   body::before {
@@ -118,7 +124,7 @@
   }
 
   section[id] {
-    scroll-margin-top: 7.5rem;
+    scroll-margin-top: calc(7.5rem + env(safe-area-inset-top));
   }
 
   .section-shell::before {

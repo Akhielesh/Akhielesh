@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Instrument_Serif } from "next/font/google";
 import { MotionConfig } from "motion/react";
 import { fullName, roleTitle, siteDescription, siteUrl } from "@/content/site";
@@ -34,6 +34,15 @@ export const metadata: Metadata = {
     template: `%s | ${fullName}`
   },
   description: siteDescription,
+  applicationName: fullName,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: fullName
+  },
+  formatDetection: {
+    telephone: false
+  },
   openGraph: {
     title: `${fullName} | ${roleTitle}`,
     description: siteDescription,
@@ -47,14 +56,21 @@ export const metadata: Metadata = {
   }
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0d1117"
+};
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" content="#0d1117" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content={fullName} />
       </head>
       <body className={`${sansFont.variable} ${monoFont.variable} ${displayFont.variable} antialiased`}>
         <MotionConfig reducedMotion="user">

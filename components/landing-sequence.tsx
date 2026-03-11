@@ -8,7 +8,7 @@ import { introTitles, siteName } from "@/content/site";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-const STORAGE_KEY = "akhielesh-entry-seen-v4";
+const STORAGE_KEY = "akhielesh-entry-seen-v5";
 const LETTERS_PHASE_MS = 2200;
 const TITLES_START_MS = 2800;
 const TITLE_STEP_MS = 1400;
@@ -32,6 +32,7 @@ export function LandingSequence() {
   const [dismissed, setDismissed] = useState(false);
   const [phase, setPhase] = useState<"hidden" | "playing" | "closing">("hidden");
   const [timelineMs, setTimelineMs] = useState(0);
+  const [allowTimelineScrub, setAllowTimelineScrub] = useState(false);
   const [isTimelineHovered, setIsTimelineHovered] = useState(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const letters = useMemo(() => siteName.toUpperCase().split(""), []);
@@ -80,13 +81,36 @@ export function LandingSequence() {
     updateTimeline(ratio * TIMELINE_DURATION_MS);
   };
 
+  const setBackgroundLocked = (locked: boolean) => {
+    document.documentElement.style.overflow = locked ? "hidden" : "";
+    document.body.style.overflow = locked ? "hidden" : "";
+  };
+
+  useEffect(() => {
+    if (!mounted) {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const updateScrubMode = () => setAllowTimelineScrub(mediaQuery.matches);
+
+    updateScrubMode();
+    mediaQuery.addEventListener("change", updateScrubMode);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateScrubMode);
+    };
+  }, [mounted]);
+
   useEffect(() => {
     if (!mounted || reduceMotion || dismissed || hasSeen) {
       return;
     }
 
     const startTimer = window.setTimeout(() => {
-      document.documentElement.style.overflow = "hidden";
+      const shouldLockBackground = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+      setBackgroundLocked(shouldLockBackground);
       playbackAnchorRef.current = performance.now();
       playbackOffsetRef.current = 0;
       timelineRef.current = 0;
@@ -101,7 +125,7 @@ export function LandingSequence() {
       if (rafRef.current) {
         window.cancelAnimationFrame(rafRef.current);
       }
-      document.documentElement.style.overflow = "";
+      setBackgroundLocked(false);
     };
   }, [dismissed, hasSeen, mounted, reduceMotion]);
 
@@ -151,7 +175,7 @@ export function LandingSequence() {
 
     const exitTimer = window.setTimeout(() => {
       window.sessionStorage.setItem(STORAGE_KEY, "1");
-      document.documentElement.style.overflow = "";
+      setBackgroundLocked(false);
       setDismissed(true);
       setPhase("hidden");
     }, EXIT_DURATION_MS);
@@ -174,7 +198,7 @@ export function LandingSequence() {
           animate={phase === "closing" ? { opacity: 0 } : { opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: EXIT_DURATION_MS / 1000, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed inset-0 z-[90] flex items-center justify-center overflow-hidden bg-[hsl(220_18%_6%/0.97)] px-5"
+          className="fixed inset-0 z-[90] flex touch-pan-y items-start justify-center overflow-y-auto overflow-x-hidden bg-[hsl(220_18%_6%/0.97)] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] overscroll-y-contain [-webkit-overflow-scrolling:touch] sm:items-center sm:px-5"
         >
           <div className="absolute inset-0">
             <div className="absolute left-[12%] top-[18%] h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(246,186,116,0.18),_transparent_68%)] blur-3xl" />
@@ -182,7 +206,7 @@ export function LandingSequence() {
             <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-white/12 to-transparent" />
           </div>
 
-          <div className="relative w-full max-w-5xl rounded-[2.6rem] border border-white/[0.12] bg-[hsl(220_18%_8%/0.95)] px-6 py-14 shadow-[0_30px_110px_-54px_rgba(0,0,0,0.82)] backdrop-blur-2xl sm:px-10 sm:py-20">
+          <div className="relative my-auto w-full max-w-5xl self-start rounded-[2.35rem] border border-white/[0.12] bg-[hsl(220_18%_8%/0.95)] px-5 py-10 shadow-[0_30px_110px_-54px_rgba(0,0,0,0.82)] backdrop-blur-2xl sm:self-auto sm:rounded-[2.6rem] sm:px-10 sm:py-20">
             <div className="mb-6 text-center">
               <p className="eyebrow-label">Entering the studio</p>
             </div>
@@ -285,13 +309,21 @@ export function LandingSequence() {
             <div className="mx-auto mt-10 max-w-2xl">
               <div
                 className="group"
-                onPointerEnter={() => setIsTimelineHovered(true)}
+                onPointerEnter={() => {
+                  if (allowTimelineScrub) {
+                    setIsTimelineHovered(true);
+                  }
+                }}
                 onPointerLeave={() => setIsTimelineHovered(false)}
               >
                 <div
                   ref={timelineTrackRef}
                   data-intro-timeline-track
                   onPointerDown={(event) => {
+                    if (!allowTimelineScrub) {
+                      return;
+                    }
+
                     event.preventDefault();
                     event.currentTarget.setPointerCapture(event.pointerId);
                     setIsScrubbing(true);
@@ -322,9 +354,8 @@ export function LandingSequence() {
                   }}
                   className={cn(
                     "relative h-8 transition-all duration-300",
-                    isTimelineHovered || isScrubbing
-                      ? "cursor-grab"
-                      : "cursor-default"
+                    allowTimelineScrub ? "touch-pan-y" : "pointer-events-none",
+                    isTimelineHovered || isScrubbing ? "cursor-grab" : "cursor-default"
                   )}
                 >
                   <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 rounded-full bg-white/10" />
@@ -347,7 +378,7 @@ export function LandingSequence() {
                 </div>
 
                 <AnimatePresence>
-                  {isTimelineHovered || isScrubbing ? (
+                  {allowTimelineScrub && (isTimelineHovered || isScrubbing) ? (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -376,7 +407,7 @@ export function LandingSequence() {
                 </AnimatePresence>
               </div>
 
-              <div className="mt-5 flex flex-col items-center justify-between gap-4 sm:flex-row">
+              <div className="mt-5 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <p data-intro-status className="text-xs uppercase tracking-[0.26em] text-muted-foreground">
                   {timelineStatus}
                 </p>
@@ -385,7 +416,7 @@ export function LandingSequence() {
                   variant="outline"
                   disabled={!canContinue}
                   onClick={() => setPhase("closing")}
-                  className="pointer-events-auto min-w-[220px] justify-center border-white/14 bg-white/[0.04] disabled:opacity-60"
+                  className="pointer-events-auto min-w-full justify-center border-white/14 bg-white/[0.04] disabled:opacity-60 sm:min-w-[220px]"
                 >
                   Continue to website
                   <ArrowRight className="size-4" />

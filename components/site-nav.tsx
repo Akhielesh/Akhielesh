@@ -110,7 +110,7 @@ export function SiteNav() {
   }, [onHomePage, sectionIds]);
 
   return (
-    <header className="sticky top-0 z-50 px-4 pt-4 sm:px-6">
+    <header className="sticky top-0 z-50 px-4 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 rounded-[2rem] border border-white/10 bg-[#0c1117] px-4 py-4 shadow-[0_24px_72px_-34px_rgba(0,0,0,0.88)] sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div className="flex items-center justify-between gap-4">
