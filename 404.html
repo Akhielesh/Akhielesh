@@ -4,6 +4,11 @@
     <meta charset="utf-8" />
     <title>Redirecting...</title>
     <meta name="robots" content="noindex,nofollow" />
+    <!-- Performance: Establish connection early to speed up redirect network request -->
+    <link rel="preconnect" href="https://akhielesh.com" />
+    <link rel="dns-prefetch" href="https://akhielesh.com" />
+
+    <!-- Performance: Execute redirect -->
     <script>
       const TARGET_ORIGIN = "https://akhielesh.com";
       const LEGACY_BASE = "/Akhielesh";
