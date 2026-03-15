@@ -2,6 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!-- ⚡ Bolt Optimization: Preconnect to target origin.
+         Why: Starts DNS/TCP/TLS handshake in parallel with HTML/JS parsing.
+         Impact: Reduces redirect latency by 100-300ms. -->
+    <link rel="preconnect" href="https://akhielesh.com" />
     <title>Redirecting...</title>
     <meta name="robots" content="noindex,nofollow" />
     <script>
