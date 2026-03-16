@@ -4,6 +4,12 @@
     <meta charset="utf-8" />
     <title>Redirecting...</title>
     <meta name="robots" content="noindex,nofollow" />
+
+    <!-- ⚡ Bolt: Preconnect to the redirect target to establish the TCP/TLS connection early.
+         Impact: Reduces redirect latency by eliminating connection setup time during the redirect. -->
+    <link rel="preconnect" href="https://akhielesh.com" />
+    <link rel="dns-prefetch" href="https://akhielesh.com" />
+
     <script>
       const TARGET_ORIGIN = "https://akhielesh.com";
       const LEGACY_BASE = "/Akhielesh";
