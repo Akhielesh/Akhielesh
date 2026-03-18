@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <title>Redirecting...</title>
     <meta name="robots" content="noindex,nofollow" />
+    <!-- Preconnect to target origin to initiate early DNS, TCP, and TLS negotiations, reducing redirect latency -->
+    <link rel="preconnect" href="https://akhielesh.com" />
     <script>
       const TARGET_ORIGIN = "https://akhielesh.com";
       const LEGACY_BASE = "/Akhielesh";
@@ -12,9 +14,12 @@
       const nextPath = current.pathname.startsWith(LEGACY_BASE)
         ? current.pathname.slice(LEGACY_BASE.length) || "/"
         : current.pathname || "/";
-      const nextUrl = `${TARGET_ORIGIN}${nextPath}${current.search}${current.hash}`;
 
-      window.location.replace(nextUrl);
+      const nextUrl = new URL(nextPath, TARGET_ORIGIN);
+      nextUrl.search = current.search;
+      nextUrl.hash = current.hash;
+
+      window.location.replace(nextUrl.href);
     </script>
   </head>
   <body></body>
