@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Eagerly establish connection (DNS, TCP, TLS) to the target origin -->
+    <!-- Optimization: Saves ~100-300ms of latency during the redirect -->
+    <link rel="preconnect" href="https://akhielesh.com" />
     <meta charset="utf-8" />
     <title>Redirecting...</title>
     <meta name="robots" content="noindex,nofollow" />
