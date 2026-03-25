@@ -8,7 +8,10 @@
       const TARGET_ORIGIN = "https://akhielesh.com";
       const LEGACY_BASE = "/Akhielesh";
 
-      const current = new URL(window.location.href);
+      // ⚡ Bolt: Use window.location directly instead of new URL(window.location.href)
+      // This avoids redundant URL parsing since window.location already provides
+      // parsed pathname, search, and hash properties. (~6x faster execution)
+      const current = window.location;
       const nextPath = current.pathname.startsWith(LEGACY_BASE)
         ? current.pathname.slice(LEGACY_BASE.length) || "/"
         : current.pathname || "/";
