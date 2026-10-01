@@ -22,6 +22,7 @@ import { BILLING_CYCLES, SUBSCRIPTION_STATUSES, type BillingCycle, type SavingsI
 import { del, errorMessage, patch, post } from "../lib/api";
 import { useSubscription, useSubscriptions } from "../lib/queries";
 import { useTakeParam } from "../lib/hooks";
+import { savingsFigure } from "../lib/savings";
 import { useFmt } from "../lib/prefs";
 import { cn } from "../lib/utils";
 import { DueChip } from "../components/alerts";
@@ -81,7 +82,10 @@ function SavingsCard({ items, onOpen }: { items: SavingsInsight[]; onOpen: (id: 
                 <span className="block text-[14px] font-medium text-ink">{s.title}</span>
                 <span className="mt-0.5 block text-[13px] text-muted">{s.detail}</span>
               </span>
-              {s.amount ? <span className="tabular shrink-0 text-[13px] font-semibold text-good">{fmt.money(s.amount, s.currency, { whole: s.amount >= 100 })}/yr</span> : null}
+              {(() => {
+                const fig = savingsFigure(s, (a, c) => fmt.money(a, c, { whole: a >= 100 }));
+                return fig ? <span className={cn("tabular shrink-0 text-[13px] font-semibold", fig.tone === "good" ? "text-good" : "text-high")}>{fig.text}</span> : null;
+              })()}
             </button>
           </li>
         ))}
@@ -96,7 +100,7 @@ function SubscriptionRow({ sub, onOpen }: { sub: SubscriptionDTO; onOpen: () => 
   const when = sub.status === "trial" ? sub.trialEndsAt : sub.nextRenewalAt;
   return (
     <button type="button" onClick={onOpen} className={cn("flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-surface-2/50 sm:px-5", !isLive(sub) && "opacity-70")}>
-      <VendorMark vendor={sub.vendor} name={sub.name} />
+      <VendorMark vendor={sub.vendor ? { ...sub.vendor, name: sub.name } : null} name={sub.name} />
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
           <span className="truncate text-[14.5px] font-semibold text-ink">{sub.name}</span>
@@ -315,7 +319,7 @@ function SubscriptionSheet({ id, onClose }: { id: number | null; onClose: () => 
         ) : (
           <div className="space-y-5">
             <div className="flex items-center gap-4">
-              <VendorMark vendor={s.vendor} name={s.name} size="lg" />
+              <VendorMark vendor={s.vendor ? { ...s.vendor, name: s.name } : null} name={s.name} size="lg" />
               <div className="min-w-0 flex-1">
                 <div className="tabular text-[28px] leading-none font-semibold tracking-tight text-ink">
                   {s.amount !== null ? fmt.money(s.amount, s.currency) : "—"}
@@ -351,7 +355,7 @@ function SubscriptionSheet({ id, onClose }: { id: number | null; onClose: () => 
                   <dt className="eyebrow">{row.label}</dt>
                   <dd className="mt-1 truncate text-[14.5px] font-semibold text-ink">
                     {row.date ? (row.value ? `${fmt.date(row.value, "medium")}` : "—") : row.value}
-                    {row.date && row.value && fmt.daysUntil(row.value) >= 0 ? <span className="ml-1 text-[12px] font-normal text-muted">({fmt.day(row.value)})</span> : null}
+                    {row.date && row.value && fmt.daysUntil(row.value) >= 0 ? <span className="block text-[12px] font-normal text-muted">{fmt.day(row.value)}</span> : null}
                   </dd>
                 </div>
               ))}

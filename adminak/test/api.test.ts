@@ -15,6 +15,8 @@ import type {
   TimelineItem,
 } from "../src/shared/types.js";
 import { dispatchInstant, sendDigest } from "../src/server/notify/dispatcher.js";
+import { refreshBriefingIfStale } from "../src/server/jobs/scheduler.js";
+import { deleteMeta } from "../src/server/db/index.js";
 import { totpCode } from "../src/server/security/totp.js";
 import { createHarness, setupOwner } from "./helpers.js";
 
@@ -137,6 +139,42 @@ describe("demo workspace end-to-end", async () => {
     expect(paid.body.status).toBe("paid");
     const manual = await h.json("POST", "/api/bills", { name: "Rent", kind: "rent", amountDue: 3450, dueAt: "2026-11-01" });
     expect(manual.status).toBe(201);
+  });
+
+  it("counts rent paid via a bill payment but not card statement payments as spending", async () => {
+    const money = await h.json<MoneyDTO>("GET", "/api/money");
+    // The Bilt rent payment has no linked bill; it must still count (a NULL bill_id once dropped it).
+    const bills = money.body.spendByCategory.find((c) => c.category === "bills");
+    expect(bills?.total ?? 0).toBeGreaterThanOrEqual(3450);
+    // Paying the Amex statement re-pays purchases already counted, so it isn't spending.
+    expect(money.body.topMerchants.map((m) => m.name)).not.toContain("American Express");
+    const september = money.body.monthly.find((m) => m.month === "2026-09")!;
+    expect(september.out).toBeGreaterThan(3450);
+    expect(september.out).toBeLessThan(3450 + 2500);
+  });
+
+  it("mutes and unmutes a noisy sender from the declutter list", async () => {
+    const senders = await h.json<{ fromEmail: string; muted: boolean }[]>("GET", "/api/senders");
+    const target = senders.body[0]!;
+    expect(target.muted).toBe(false);
+    const muted = await h.json<{ pattern: string }>("POST", "/api/senders/mute", { email: target.fromEmail });
+    expect(muted.body.pattern).toBe(target.fromEmail);
+    const after = await h.json<{ fromEmail: string; muted: boolean }[]>("GET", "/api/senders");
+    expect(after.body.find((s) => s.fromEmail === target.fromEmail)?.muted).toBe(true);
+    const overrides = await h.json<{ pattern: string; ignore: boolean }[]>("GET", "/api/sender-overrides");
+    expect(overrides.body.some((o) => o.pattern === target.fromEmail && o.ignore)).toBe(true);
+    await h.json("POST", "/api/senders/mute", { email: target.fromEmail, muted: false });
+    const restored = await h.json<{ fromEmail: string; muted: boolean }[]>("GET", "/api/senders");
+    expect(restored.body.find((s) => s.fromEmail === target.fromEmail)?.muted).toBe(false);
+  });
+
+  it("generates the dashboard briefing automatically and only when stale", async () => {
+    deleteMeta(h.ctx.db, "briefing");
+    expect(await refreshBriefingIfStale(h.ctx)).toBe(true);
+    const overview = await h.json<OverviewDTO>("GET", "/api/overview");
+    expect(overview.body.briefing?.source).toBe("rules");
+    expect(overview.body.briefing?.text.length).toBeGreaterThan(20);
+    expect(await refreshBriefingIfStale(h.ctx)).toBe(false);
   });
 
   it("builds the timeline and domain pages", async () => {

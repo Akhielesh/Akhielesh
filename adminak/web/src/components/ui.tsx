@@ -56,9 +56,10 @@ export function Card({ className, children, as: As = "section" }: { className?: 
   return <As className={cn("card", className)}>{children}</As>;
 }
 
-export function CardHeader({ title, eyebrow, action, className, icon: Icon }: { title: ReactNode; eyebrow?: ReactNode; action?: ReactNode; className?: string; icon?: LucideIcon }) {
+/** `flush` drops the built-in padding for headers placed inside an already padded card. */
+export function CardHeader({ title, eyebrow, action, className, icon: Icon, flush }: { title: ReactNode; eyebrow?: ReactNode; action?: ReactNode; className?: string; icon?: LucideIcon; flush?: boolean }) {
   return (
-    <div className={cn("flex items-start justify-between gap-3 px-4 pt-4 sm:px-5 sm:pt-5", className)}>
+    <div className={cn("flex items-start justify-between gap-3", !flush && "px-4 pt-4 sm:px-5 sm:pt-5", className)}>
       <div className="min-w-0">
         {eyebrow ? <div className="eyebrow mb-1">{eyebrow}</div> : null}
         <h2 className="flex items-center gap-2 text-[15px] font-semibold text-ink">

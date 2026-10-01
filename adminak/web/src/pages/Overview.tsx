@@ -23,6 +23,7 @@ import { post, errorMessage } from "../lib/api";
 import { actions, useAccounts, useInvalidateData, useOverview } from "../lib/queries";
 import { useFmt, usePrefs } from "../lib/prefs";
 import { greeting, pct, cn } from "../lib/utils";
+import { savingsFigure } from "../lib/savings";
 import { AlertRow, AlertSheet } from "../components/alerts";
 import { CategoryBars, SpendBars } from "../components/charts";
 import { TimelineList } from "../components/timeline";
@@ -106,7 +107,7 @@ function Briefing({ overview }: { overview: OverviewDTO }) {
               Refresh
             </Button>
           </div>
-          <p className="mt-1 text-[14.5px] leading-relaxed text-ink">{text ?? "Your briefing summarizes what needs action today, what's coming up and one money insight. Tap refresh to generate it."}</p>
+          <p className="mt-1 text-[14.5px] leading-relaxed text-ink">{text ?? (overview.kpis.emailsAnalyzed ? "Preparing your briefing — tap refresh if it doesn't appear in a moment." : "Once a mailbox is connected, this briefing summarizes what needs action today, what's coming up and one money insight.")}</p>
         </div>
       </div>
     </Card>
@@ -120,6 +121,8 @@ function KpiGrid({ overview }: { overview: OverviewDTO }) {
   const spent = k.spendThisMonth.find((t) => t.currency === overview.baseCurrency)?.amount ?? 0;
   const last = k.spendLastMonth.find((t) => t.currency === overview.baseCurrency)?.amount ?? 0;
   const change = pct(spent, last);
+  const thisMonth = overview.spendTrend.at(-1);
+  const prevMonth = overview.spendTrend.at(-2);
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <Stat
@@ -146,11 +149,17 @@ function KpiGrid({ overview }: { overview: OverviewDTO }) {
         onClick={() => navigate("/alerts")}
       />
       <Stat
-        label="Spent this month"
+        label={thisMonth ? `Spent in ${thisMonth.label}` : "Spent this month"}
         icon={Wallet}
         value={fmt.money(spent, overview.baseCurrency, { whole: true })}
-        hint={change === null ? "from scanned receipts" : `${change > 0 ? "+" : ""}${change}% vs same point last month`}
-        tone={change === null ? "neutral" : change > 10 ? "warn" : "good"}
+        hint={
+          change !== null && spent > 0
+            ? `${change > 0 ? "+" : ""}${change}% vs this point in ${prevMonth?.label ?? "last month"}`
+            : prevMonth && prevMonth.out > 0
+              ? `${prevMonth.label}: ${fmt.money(prevMonth.out, overview.baseCurrency, { whole: true })} total`
+              : "from scanned receipts"
+        }
+        tone={change === null || spent === 0 ? "neutral" : change > 10 ? "warn" : "good"}
         onClick={() => navigate("/money")}
       />
     </div>
@@ -226,7 +235,10 @@ function Savings({ overview }: { overview: OverviewDTO }) {
                 <span className="block text-[13.5px] font-semibold text-ink">{s.title}</span>
                 <span className="mt-0.5 block text-[12.5px] text-muted">{s.detail}</span>
               </span>
-              {s.amount && s.kind !== "trial" && s.kind !== "failed_payment" ? <span className="tabular ml-auto shrink-0 text-[13px] font-semibold text-good">{fmt.money(s.amount, s.currency, { whole: true })}</span> : null}
+              {(() => {
+                const fig = savingsFigure(s, (a, c) => fmt.money(a, c, { whole: a >= 100 }));
+                return fig ? <span className={cn("tabular ml-auto shrink-0 text-[12.5px] font-semibold", fig.tone === "good" ? "text-good" : "text-high")}>{fig.text}</span> : null;
+              })()}
             </Link>
           </li>
         ))}
@@ -337,7 +349,7 @@ export function OverviewPage() {
                 </Link>
               }
             />
-            <div className="mt-3 overflow-hidden rounded-b-[18px]">
+            <div className="mt-3 overflow-clip rounded-b-[18px]">
               {data.upcoming.length ? (
                 <TimelineList items={data.upcoming} limit={8} />
               ) : (

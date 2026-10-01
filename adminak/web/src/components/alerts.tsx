@@ -174,9 +174,9 @@ export function AlertSheet({ alert, open, onClose }: { alert: AlertDTO | null; o
           </div>
         ) : null}
 
-        {alert.facts.length ? (
+        {alert.facts.filter((f) => f !== amountFact).length ? (
           <dl className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line">
-            {alert.facts.map((f) => (
+            {alert.facts.filter((f) => f !== amountFact).map((f) => (
               <div key={f.label} className="flex items-start justify-between gap-4 px-4 py-2.5 text-sm">
                 <dt className="text-muted">{f.label}</dt>
                 <dd className="text-right font-medium break-words text-ink">{f.value}</dd>

@@ -158,8 +158,8 @@ export function facts(rows: Fact[]): string {
 ${visible
   .map(
     (r, i) => `<tr>
-<td class="muted" style="font-family:${FONT};font-size:13px;color:${C.muted};padding:10px 14px;${i ? `border-top:1px solid ${C.border};` : ""}width:38%;vertical-align:top;">${esc(r.label)}</td>
-<td class="ink" style="font-family:${FONT};font-size:14px;font-weight:600;color:${C.ink};padding:10px 14px;${i ? `border-top:1px solid ${C.border};` : ""}vertical-align:top;">${esc(r.value)}</td>
+<td class="muted divider" style="font-family:${FONT};font-size:13px;color:${C.muted};padding:10px 14px;${i ? `border-top:1px solid ${C.border};` : ""}width:38%;vertical-align:top;">${esc(r.label)}</td>
+<td class="ink divider" style="font-family:${FONT};font-size:14px;font-weight:600;color:${C.ink};padding:10px 14px;${i ? `border-top:1px solid ${C.border};` : ""}vertical-align:top;">${esc(r.value)}</td>
 </tr>`,
   )
   .join("")}
@@ -229,13 +229,13 @@ ${rows
     const href = safeHref(r.href);
     const title = href ? `<a href="${href}" class="ink" style="color:${C.ink};text-decoration:none;">${esc(r.title)}</a>` : esc(r.title);
     return `<tr>
-<td class="muted" style="font-family:${FONT};font-size:12px;color:${C.muted};padding:11px 12px 11px 0;${i ? `border-top:1px solid ${C.border};` : ""}width:64px;vertical-align:top;white-space:nowrap;" >${esc(r.left)}</td>
-<td style="font-family:${FONT};padding:11px 0;${i ? `border-top:1px solid ${C.border};` : ""}vertical-align:top;">
+<td class="muted divider" style="font-family:${FONT};font-size:12px;color:${C.muted};padding:11px 12px 11px 0;${i ? `border-top:1px solid ${C.border};` : ""}width:64px;vertical-align:top;white-space:nowrap;" >${esc(r.left)}</td>
+<td class="divider" style="font-family:${FONT};padding:11px 0;${i ? `border-top:1px solid ${C.border};` : ""}vertical-align:top;">
 ${r.badge ? `<div style="margin-bottom:5px;">${badge(r.badge)}</div>` : ""}
 <div class="ink" style="font-size:14px;font-weight:600;line-height:1.4;color:${C.ink};">${title}</div>
 ${r.subtitle ? `<div class="muted" style="font-size:13px;line-height:1.45;color:${C.muted};margin-top:2px;">${esc(r.subtitle)}</div>` : ""}
 </td>
-<td align="right" class="ink" style="font-family:${FONT};font-size:14px;font-weight:600;color:${C.ink};padding:11px 0 11px 12px;${i ? `border-top:1px solid ${C.border};` : ""}vertical-align:top;white-space:nowrap;">${esc(r.right ?? "")}</td>
+<td align="right" class="ink divider" style="font-family:${FONT};font-size:14px;font-weight:600;color:${C.ink};padding:11px 0 11px 12px;${i ? `border-top:1px solid ${C.border};` : ""}vertical-align:top;white-space:nowrap;">${esc(r.right ?? "")}</td>
 </tr>`;
   })
   .join("")}

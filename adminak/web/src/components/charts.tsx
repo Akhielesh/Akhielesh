@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Table2, BarChart3 } from "lucide-react";
 import type { MonthlySpend } from "@shared/types";
 import { useFmt } from "../lib/prefs";
@@ -157,9 +157,19 @@ export function CategoryBars({ rows, currency }: { rows: { label: string; value:
 
 export function Sparkline({ points, currency, className }: { points: { at: string; amount: number }[]; currency: string | null; className?: string }) {
   const fmt = useFmt();
+  // Draw in real pixels so the line spans the container without stretching the markers.
+  const box = useRef<HTMLDivElement>(null);
+  const [measured, setMeasured] = useState(300);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => setMeasured(Math.max(120, Math.round(entry!.contentRect.width))));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   const geometry = useMemo(() => {
     if (points.length === 0) return null;
-    const width = 300;
+    const width = measured;
     const height = 70;
     const pad = 10;
     const min = Math.min(...points.map((p) => p.amount));
@@ -168,13 +178,13 @@ export function Sparkline({ points, currency, className }: { points: { at: strin
     const xs = points.map((_, i) => (points.length === 1 ? width / 2 : pad + (i / (points.length - 1)) * (width - pad * 2)));
     const ys = points.map((p) => height - pad - ((p.amount - min) / span) * (height - pad * 2));
     return { width, height, xs, ys };
-  }, [points]);
+  }, [points, measured]);
   if (!geometry) return null;
   const { width, height, xs, ys } = geometry;
   const path = xs.map((x, i) => `${i ? "L" : "M"}${x.toFixed(1)},${ys[i]!.toFixed(1)}`).join(" ");
   const last = points.length - 1;
   return (
-    <div className={cn("w-full", className)}>
+    <div ref={box} className={cn("w-full", className)}>
       <svg viewBox={`0 0 ${width} ${height}`} className="h-[70px] w-full overflow-visible" role="img" aria-label={`Price history: ${points.map((p) => `${fmt.date(p.at, "monthDay")} ${fmt.money(p.amount, currency)}`).join(", ")}`}>
         <line x1={0} x2={width} y1={height - 1} y2={height - 1} stroke="var(--grid)" />
         <path d={path} fill="none" stroke="var(--series)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />

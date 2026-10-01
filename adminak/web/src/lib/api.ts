@@ -29,7 +29,8 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
   const data: unknown = type.includes("application/json") ? await res.json().catch(() => null) : await res.text();
   if (res.status === 401 && !path.startsWith("/auth/")) window.dispatchEvent(new CustomEvent("adminak:unauthorized"));
   if (!res.ok) {
-    const message = (data && typeof data === "object" && "error" in data && typeof data.error === "string" && data.error) || res.statusText || "Request failed";
+    const serverError = data && typeof data === "object" && "error" in data && typeof data.error === "string" ? data.error : "";
+    const message = serverError || res.statusText || "Request failed";
     throw new ApiError(message, res.status, data);
   }
   return data as T;

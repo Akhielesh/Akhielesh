@@ -42,7 +42,7 @@
     "vite": "^8.3.2",
     "vitest": "^5.0.3"
   },
-  "description": "Adminak — self-hosted personal intelligence console: scans your inbox, tracks subscriptions, bills, money, career, travel and security, and sends alerts to your personal email.",
+  "description": "Adminak \u2014 self-hosted personal intelligence console: scans your inbox, tracks subscriptions, bills, money, career, travel and security, and sends alerts to your personal email.",
   "engines": {
     "node": ">=22"
   },
@@ -58,7 +58,6 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "demo": "tsx src/server/cli.ts demo",
-    "cli": "tsx src/server/cli.ts",
-    "screenshots": "tsx scripts/screenshots.ts"
+    "cli": "tsx src/server/cli.ts"
   }
 }

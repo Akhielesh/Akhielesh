@@ -221,8 +221,11 @@ export function buildTimeline(ctx: AppContext, from: Date, to: Date): TimelineIt
 // ─── Money analytics ─────────────────────────────────────────────────────────
 
 /** Spending = money out, excluding transfers between people and credit-card bill payments (already counted as purchases). */
-const SPEND_FILTER = `c.direction = 'out' AND c.status = 'posted' AND c.kind != 'transfer_out'
-  AND NOT (c.kind = 'bill_payment' AND c.bill_id IN (SELECT id FROM bills WHERE kind = 'credit_card'))`;
+// Paying a card statement isn't new spending — the card purchases were already counted. COALESCE keeps
+// payments with no linked bill (bill_id NULL) from turning the whole predicate NULL and vanishing.
+const CC_PAYMENT = `(c.kind = 'bill_payment' AND (COALESCE(c.bill_id IN (SELECT id FROM bills WHERE kind = 'credit_card'), 0)
+  OR COALESCE((SELECT kind FROM vendors WHERE id = c.vendor_id) = 'card', 0)))`;
+const SPEND_FILTER = `c.direction = 'out' AND c.status = 'posted' AND c.kind != 'transfer_out' AND NOT ${CC_PAYMENT}`;
 
 export function spendTotals(ctx: AppContext, from: Date, to: Date): MoneyTotal[] {
   const rows = ctx.db
@@ -247,7 +250,7 @@ export function monthlySpend(ctx: AppContext, months = 12): MonthlySpend[] {
   const rows = ctx.db
     .prepare(
       `SELECT c.occurred_at, c.amount, c.direction, c.kind, c.spend_category, c.currency, c.status,
-         (c.kind = 'bill_payment' AND c.bill_id IN (SELECT id FROM bills WHERE kind = 'credit_card')) AS cc_payment
+         ${CC_PAYMENT} AS cc_payment
        FROM charges c WHERE c.occurred_at >= ? AND c.currency = ? AND c.status = 'posted'`,
     )
     .all(start.toISOString(), currency) as {

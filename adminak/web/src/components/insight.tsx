@@ -155,7 +155,10 @@ export function InsightRow({ item, onOpen, showVendor = true, showStatus = true 
   const Comp = onOpen ? "button" : "div";
   return (
     <Comp type={onOpen ? "button" : undefined} onClick={onOpen} className={cn("flex w-full items-start gap-3 px-4 py-3 text-left sm:px-5", onOpen && "transition-colors hover:bg-surface-2/50")}>
-      {showVendor && item.vendor ? (
+      {showVendor && item.category === "career" && typeof item.data.company === "string" ? (
+        // Career mail often comes via an ATS (Greenhouse, Ashby…); show the employer, not the platform.
+        <VendorMark name={item.data.company} size="sm" className="mt-0.5" />
+      ) : showVendor && item.vendor ? (
         <VendorMark vendor={item.vendor} size="sm" className="mt-0.5" />
       ) : (
         <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-[10px] bg-surface-2 text-ink-2">

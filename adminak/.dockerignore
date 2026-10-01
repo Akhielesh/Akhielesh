@@ -1,0 +1,12 @@
+node_modules
+dist
+data
+coverage
+output
+*.log
+*.db
+*.db-*
+.env
+.env.*
+!.env.example
+.DS_Store

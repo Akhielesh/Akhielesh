@@ -1,10 +1,10 @@
 import type { AppContext } from "../context.js";
-import { runEnrichmentQueue } from "../intel/ai.js";
+import { generateBriefing, runEnrichmentQueue } from "../intel/ai.js";
 import { syncAll } from "../ingest/sync.js";
 import { dispatchInstant, markScheduled, retryFailed, scheduledDue, sendDigest } from "../notify/dispatcher.js";
 import { runReminders } from "../services/reminders.js";
 import { dayKey, zonedParts } from "../../shared/time.js";
-import { getMeta, setMeta } from "../db/index.js";
+import { getMeta, parseJson, setMeta } from "../db/index.js";
 
 const running = new Set<string>();
 
@@ -50,6 +50,24 @@ export function runRetention(ctx: AppContext): { bodies: number; sessions: numbe
   return { bodies, sessions };
 }
 
+const HOUR = 3_600_000;
+
+/**
+ * Keeps the dashboard briefing fresh: regenerate when there's none yet, when new mail arrived since
+ * the last one (at most hourly, so AI briefings stay cheap), or when it's older than six hours.
+ */
+export async function refreshBriefingIfStale(ctx: AppContext): Promise<boolean> {
+  const messages = (ctx.db.prepare("SELECT COUNT(*) AS n FROM messages").get() as { n: number }).n;
+  if (messages === 0) return false;
+  const current = parseJson<{ generatedAt: string } | null>(getMeta(ctx.db, "briefing"), null);
+  const changedAt = getMeta(ctx.db, "data_changed_at");
+  const age = current ? ctx.now().getTime() - new Date(current.generatedAt).getTime() : Infinity;
+  const stale = !current || age > 6 * HOUR || (!!changedAt && changedAt > current.generatedAt && age > HOUR);
+  if (!stale) return false;
+  await runJob(ctx, "briefing", () => generateBriefing(ctx));
+  return true;
+}
+
 export interface Scheduler {
   stop(): void;
   tick(): Promise<void>;
@@ -79,6 +97,7 @@ export function startScheduler(ctx: AppContext): Scheduler {
       lastEnrich = nowMs;
       await runJob(ctx, "ai-enrich", () => runEnrichmentQueue(ctx));
     }
+    await refreshBriefingIfStale(ctx);
     const tz = ctx.settings.get().profile.timezone;
     const local = zonedParts(ctx.now(), tz);
     if (local.hour >= 3 && getMeta(ctx.db, "retention_day") !== dayKey(ctx.now(), tz)) {
@@ -89,7 +108,11 @@ export function startScheduler(ctx: AppContext): Scheduler {
 
   // React quickly to fresh mail instead of waiting for the next tick.
   const onSyncDone = (event: { inserted: number }) => {
-    if (event.inserted > 0) void runJob(ctx, "dispatch", () => dispatchInstant(ctx));
+    if (event.inserted > 0) {
+      setMeta(ctx.db, "data_changed_at", ctx.now().toISOString());
+      void runJob(ctx, "dispatch", () => dispatchInstant(ctx));
+      if (!getMeta(ctx.db, "briefing")) void refreshBriefingIfStale(ctx);
+    }
   };
   ctx.bus.on("sync:done", onSyncDone);
 
