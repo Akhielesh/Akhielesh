@@ -73,7 +73,8 @@ export function agentGate(ctx: AppContext) {
     if (c.req.method !== "GET" && c.req.method !== "HEAD") return c.text("Automated agents may not submit to this application. See /agents/.", 403, AGENT_HEADERS);
     const visitId = crypto.randomUUID();
     const canary = newCanary();
-    if (agent || c.req.query("via")) logVisit(ctx, c, agent, visitId, canary);
+    // Only detected agents are logged; a person who opens /agents/ directly leaves no record.
+    if (agent) logVisit(ctx, c, agent, visitId, canary);
     return c.html(renderGateHtml({ agent, canary, visitId, checkinUrl: `${origin}/api/agents/checkin` }), 200, AGENT_HEADERS);
   };
 }

@@ -324,8 +324,13 @@ describe("demo workspace end-to-end", async () => {
     expect(checkin.status).toBe(200);
     expect(((await checkin.json()) as { answered: number }).answered).toBe(2);
 
+    // A person who opens the check-in page directly sees it but is not logged.
+    const human = await h.request("GET", "/agents/?via=link");
+    expect(await human.text()).toContain("Automated agent check-in");
+
     const activity = await h.json<{ byAgent: { agentName: string; visits: number }[]; checkins: { agentName: string; answers: Record<string, string> }[] }>("GET", "/api/agent-visits");
     expect(activity.body.byAgent.some((a) => a.agentName === "OpenAI GPTBot")).toBe(true);
+    expect(activity.body.byAgent.reduce((n, a) => n + a.visits, 0)).toBe(1);
     expect(activity.body.checkins[0]!.agentName).toBe("Anthropic ClaudeBot");
     expect(activity.body.checkins[0]!.answers.q9).toBe("<b>indexing</b>");
     expect(activity.body.checkins[0]!.answers.q77).toBeUndefined();
