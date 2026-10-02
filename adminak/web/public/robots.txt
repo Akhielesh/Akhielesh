@@ -1,0 +1,7 @@
+# A private, single-owner console. Nothing here is for search engines or AI.
+Content-Signal: search=no, ai-train=no, ai-input=no
+
+User-agent: *
+Allow: /agents/
+Allow: /llms.txt
+Disallow: /

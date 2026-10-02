@@ -1,0 +1,322 @@
+@import "tailwindcss";
+@source "./";
+@source not "../../src/server";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  color-scheme: light;
+  --bg: #f6f5f1;
+  --surface: #ffffff;
+  --surface-2: #f2f1ec;
+  --surface-3: #fbfaf8;
+  --border: rgba(11, 11, 11, 0.09);
+  --border-strong: rgba(11, 11, 11, 0.17);
+  --text: #121316;
+  --text-2: #4b4a46;
+  --muted: #7d7b74;
+  --accent: #c26a16;
+  --accent-soft: rgba(240, 181, 111, 0.18);
+  --accent-ink: #ffffff;
+  --primary: #15161a;
+  --primary-ink: #ffffff;
+  --ring: #2a78d6;
+  --crit: #c73434;
+  --high: #c1581f;
+  --med: #9a6d00;
+  --low: #1f67bd;
+  --good: #0b7a0b;
+  --crit-soft: rgba(208, 59, 59, 0.1);
+  --high-soft: rgba(236, 131, 90, 0.14);
+  --med-soft: rgba(250, 178, 25, 0.16);
+  --low-soft: rgba(42, 120, 214, 0.1);
+  --good-soft: rgba(12, 163, 12, 0.1);
+  --series: #2a78d6;
+  --series-soft: rgba(42, 120, 214, 0.16);
+  --grid: #e7e5df;
+  --shadow: 0 1px 2px rgba(17, 17, 17, 0.04), 0 8px 24px -12px rgba(17, 17, 17, 0.12);
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237d7b74' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0c0d0f;
+  --surface: #141518;
+  --surface-2: #1b1c20;
+  --surface-3: #111215;
+  --border: rgba(255, 255, 255, 0.075);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --text: #f2efe8;
+  --text-2: #c3c0b7;
+  --muted: #8d8a82;
+  --accent: #f0b56f;
+  --accent-soft: rgba(240, 181, 111, 0.13);
+  --accent-ink: #1a1206;
+  --primary: #f2efe8;
+  --primary-ink: #121316;
+  --ring: #6aa7ee;
+  --crit: #ff7676;
+  --high: #f4a27e;
+  --med: #f2c14e;
+  --low: #7fb4f0;
+  --good: #52c752;
+  --crit-soft: rgba(255, 118, 118, 0.12);
+  --high-soft: rgba(244, 162, 126, 0.12);
+  --med-soft: rgba(242, 193, 78, 0.12);
+  --low-soft: rgba(127, 180, 240, 0.12);
+  --good-soft: rgba(82, 199, 82, 0.12);
+  --series: #3987e5;
+  --series-soft: rgba(57, 135, 229, 0.2);
+  --grid: #24252a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -16px rgba(0, 0, 0, 0.6);
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8a82' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+@theme inline {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-primary: var(--primary);
+  --color-primary-ink: var(--primary-ink);
+  --color-crit: var(--crit);
+  --color-high: var(--high);
+  --color-med: var(--med);
+  --color-low: var(--low);
+  --color-good: var(--good);
+  --color-crit-soft: var(--crit-soft);
+  --color-high-soft: var(--high-soft);
+  --color-med-soft: var(--med-soft);
+  --color-low-soft: var(--low-soft);
+  --color-good-soft: var(--good-soft);
+  --color-series: var(--series);
+  --color-series-soft: var(--series-soft);
+  --color-grid: var(--grid);
+  --shadow-card: var(--shadow);
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: var(--accent-soft);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .field {
+    width: 100%;
+    background: var(--surface-3);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 10px 12px;
+    min-height: 44px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 22%, transparent);
+  }
+  .field::placeholder {
+    color: var(--muted);
+  }
+  /* Nav bars behave like native chrome: no text selection, no long-press callouts. */
+  .app-chrome {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .page-enter {
+    animation: page-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-2) 25%, color-mix(in oklab, var(--surface-2) 60%, var(--surface)) 50%, var(--surface-2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+    border-radius: 10px;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes sheet-left {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(12px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Phones and tablets: app-like touch behaviour. Unlayered so it wins over utility font sizes. */
+@media (pointer: coarse) {
+  html {
+    /* Our own pull-to-refresh replaces the browser's; no rubber-band reveal behind the app bar. */
+    overscroll-behavior-y: none;
+  }
+  a,
+  button,
+  label,
+  summary,
+  [role="button"],
+  [role="tab"] {
+    touch-action: manipulation;
+  }
+  /* iOS zooms into any field under 16px on focus. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  img,
+  svg {
+    -webkit-user-drag: none;
+  }
+}
+
+/* Installed app: respect the notch and home indicator in landscape too. */
+@media (display-mode: standalone) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

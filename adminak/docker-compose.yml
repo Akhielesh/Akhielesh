@@ -1,0 +1,19 @@
+# docker compose up -d   →   http://localhost:8787
+# Settings come from .env (copy .env.example). Data persists in the adminak-data volume.
+services:
+  adminak:
+    build: .
+    image: adminak:latest
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - adminak-data:/data
+
+volumes:
+  adminak-data:

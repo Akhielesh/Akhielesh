@@ -28,10 +28,16 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
+      # Publish only the redirect shell — never the rest of the repository (e.g. adminak/).
+      - name: Stage redirect files
+        run: |
+          mkdir -p _site
+          cp index.html 404.html .nojekyll _site/
+
       - name: Upload static redirect shell
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
