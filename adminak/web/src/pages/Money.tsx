@@ -2,17 +2,20 @@ import { appUrl } from "../lib/base";
 import { useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDownLeft, ArrowUpRight, CalendarClock, Check, CreditCard, Download, ExternalLink, FileText, Mail, Plus, Receipt, RotateCcw, Search, Trash2, Wallet } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CalendarClock, Check, CreditCard, Download, ExternalLink, FileText, Landmark, Link2, Mail, PiggyBank, Plus, Receipt, RotateCcw, Scale, Search, Sparkles, Trash2, Wallet } from "lucide-react";
+import { Link } from "react-router";
 import { SPEND_CATEGORY_META } from "@shared/catalog";
 import { formatTotals, sumByCurrency, titleCase } from "@shared/format";
-import { BILL_KINDS, SPEND_CATEGORIES, type BillDTO, type BillKind, type ChargeDTO, type MoneyDTO, type SpendCategory } from "@shared/types";
+import { BILL_KINDS, SPEND_CATEGORIES, type BillDTO, type BillKind, type ChargeDTO, type FinAccountDTO, type MoneyDTO, type SpendCategory } from "@shared/types";
 import { del, errorMessage, patch, post } from "../lib/api";
-import { useCharges, useMoney } from "../lib/queries";
+import { actions } from "../lib/queries";
+import { useBanking, useCharges, useMoney } from "../lib/queries";
 import { useDebounced, useTakeParam } from "../lib/hooks";
 import { useFmt } from "../lib/prefs";
 import { cn, pct } from "../lib/utils";
 import { DueChip } from "../components/alerts";
-import { CategoryBars, SpendBars } from "../components/charts";
+import { BalanceChart, CategoryBars, SpendBars } from "../components/charts";
+import { AccountRow, BankAccountSheet, ChargeSheet, ConnectBankSheet, accountName, useBankAccounts } from "../components/bank";
 import { InsightRow } from "../components/insight";
 import { PageHeader } from "../components/layout";
 import { MessageSheet } from "../components/message";
@@ -21,7 +24,7 @@ import { useToast } from "../components/toast";
 import { Badge, Button, Card, CardHeader, EmptyState, ExternalA, Field, Input, Segmented, Select, Skeleton, Stat, Switch, Textarea, type Tone } from "../components/ui";
 import { VendorMark } from "../components/vendor";
 
-type Tab = "overview" | "bills" | "activity" | "documents";
+type Tab = "overview" | "accounts" | "bills" | "activity" | "documents";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "INR", "CAD", "AUD", "SGD", "JPY", "CHF", "AED"];
 
@@ -319,19 +322,25 @@ function ChargeRow({ charge, onOpen, onDelete }: { charge: ChargeDTO; onOpen?: (
           </span>
         )}
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[14px] font-medium text-ink">{charge.vendor?.name ?? charge.description}</span>
+          <span className="block truncate text-[14px] font-medium text-ink">{charge.vendor?.name ?? charge.merchant ?? charge.description}</span>
           <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[12px] text-muted">
             <span>{fmt.date(charge.occurredAt, "monthDay")}</span>
             <span aria-hidden>·</span>
             <span>{SPEND_CATEGORY_META[charge.spendCategory]?.label ?? charge.spendCategory}</span>
-            {charge.paymentMethod ? (
+            {charge.account || charge.paymentMethod ? (
               <>
                 <span aria-hidden>·</span>
-                <span className="truncate">{charge.paymentMethod}</span>
+                <span className="truncate">{charge.account ? accountName(charge.account) : charge.paymentMethod}</span>
               </>
             ) : null}
             {charge.status !== "posted" ? <Badge tone={charge.status === "failed" ? "bad" : charge.status === "refunded" ? "good" : "neutral"}>{titleCase(charge.status)}</Badge> : null}
             {charge.source === "manual" ? <Badge>Manual</Badge> : null}
+            {charge.receipt ? (
+              <Badge tone="good" icon={Mail}>
+                Receipt
+              </Badge>
+            ) : null}
+            {charge.kind === "card_payment" || charge.kind === "transfer_in" || charge.kind === "transfer_out" ? <Badge>{charge.kind === "card_payment" ? "Card payment" : "Transfer"}</Badge> : null}
           </span>
         </span>
       </button>
@@ -579,15 +588,20 @@ function ActivityTab({ onAdd }: { onAdd: () => void }) {
   const [q, setQ] = useState("");
   const [direction, setDirection] = useState<"all" | "out" | "in">("all");
   const [category, setCategory] = useState<SpendCategory | "">("");
+  const [source, setSource] = useState<"" | "bank" | "email" | "manual">("");
   const [messageId, setMessageId] = useState<number | null>(null);
+  const [open, setOpen] = useState<ChargeDTO | null>(null);
+  const banking = useBanking();
+  const hasBank = (banking.data?.connections.length ?? 0) > 0;
   const debounced = useDebounced(q.trim());
   const params = useMemo(() => {
     const p = new URLSearchParams({ limit: "300" });
     if (debounced) p.set("q", debounced);
     if (direction !== "all") p.set("direction", direction);
     if (category) p.set("category", category);
+    if (source) p.set("source", source);
     return p;
-  }, [debounced, direction, category]);
+  }, [debounced, direction, category, source]);
   const charges = useCharges(params);
   const fmt = useFmt();
   const list = charges.data ?? [];
@@ -619,7 +633,7 @@ function ActivityTab({ onAdd }: { onAdd: () => void }) {
           <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted" aria-hidden />
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search merchants & descriptions" className="pl-10" type="search" aria-label="Search transactions" />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Segmented
             value={direction}
             onChange={setDirection}
@@ -629,7 +643,15 @@ function ActivityTab({ onAdd }: { onAdd: () => void }) {
               { value: "in", label: "In" },
             ]}
           />
-          <Select value={category} onChange={(e) => setCategory(e.target.value as SpendCategory | "")} className="w-auto" aria-label="Category">
+          {hasBank ? (
+            <Select value={source} onChange={(e) => setSource(e.target.value as typeof source)} className="w-auto min-w-0 flex-1 sm:flex-none" aria-label="Source">
+              <option value="">All sources</option>
+              <option value="bank">Bank & card feeds</option>
+              <option value="email">From email</option>
+              <option value="manual">Added by you</option>
+            </Select>
+          ) : null}
+          <Select value={category} onChange={(e) => setCategory(e.target.value as SpendCategory | "")} className="w-auto min-w-0 flex-1 sm:flex-none" aria-label="Category">
             <option value="">All categories</option>
             {SPEND_CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -670,14 +692,130 @@ function ActivityTab({ onAdd }: { onAdd: () => void }) {
               <div className="border-b border-line bg-surface-3/80 px-4 py-1.5 text-[12px] font-semibold tracking-wide text-ink-2 uppercase sm:px-5">{g.label}</div>
               <div className="divide-y divide-line">
                 {g.items.map((c) => (
-                  <ChargeRow key={c.id} charge={c} onOpen={c.messageId ? () => setMessageId(c.messageId) : undefined} onDelete={c.source === "manual" ? () => void remove(c) : undefined} />
+                  <ChargeRow key={c.id} charge={c} onOpen={() => setOpen(c)} onDelete={c.source === "manual" ? () => void remove(c) : undefined} />
                 ))}
               </div>
             </div>
           ))
         )}
       </Card>
+      <ChargeSheet key={open?.id ?? "none"} charge={open} onClose={() => setOpen(null)} onOpenMessage={(id) => setMessageId(id)} />
       <MessageSheet messageId={messageId} onClose={() => setMessageId(null)} />
+    </div>
+  );
+}
+
+function AccountsTab({ onConnect }: { onConnect: () => void }) {
+  const banking = useBanking();
+  const fmt = useFmt();
+  const toast = useToast();
+  const [editing, setEditing] = useState<FinAccountDTO | null>(null);
+  const [categorizing, setCategorizing] = useState(false);
+  const accounts = useBankAccounts(banking.data?.connections);
+  const data = banking.data;
+  if (!data) return <Skeleton className="h-64" />;
+  const summary = data.summary;
+  const cash = accounts.filter((a) => a.type === "checking" || a.type === "savings" || a.type === "investment" || a.type === "other");
+  const owed = accounts.filter((a) => a.type === "credit" || a.type === "loan");
+  const connectionOf = (a: FinAccountDTO) => data.connections.find((c) => c.id === a.connectionId) ?? null;
+  const categorize = async () => {
+    setCategorizing(true);
+    try {
+      const res = await actions.categorizeWithAi();
+      toast.success(res.applied ? `AI categorized ${res.applied} transactions` : "Nothing left to categorize");
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      setCategorizing(false);
+    }
+  };
+  return (
+    <div className="space-y-4">
+      {!summary ? (
+        <Card>
+          <EmptyState
+            icon={Landmark}
+            title="Connect your bank"
+            action={
+              <Button variant="primary" icon={Link2} onClick={onConnect}>
+                Connect Capital One or another bank
+              </Button>
+            }
+          >
+            Balances, every card and account transaction, net worth over time — matched to the receipts in your mail so nothing is counted twice.
+          </EmptyState>
+        </Card>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Stat label="Net worth" icon={Scale} value={fmt.money(summary.netWorth, summary.currency, { whole: true })} hint={`${accounts.length} accounts`} />
+            <Stat label="Cash" icon={PiggyBank} value={fmt.money(summary.cash, summary.currency, { whole: true })} hint="Checking + savings" />
+            <Stat
+              label="Owed"
+              icon={CreditCard}
+              value={fmt.money(summary.owed, summary.currency, { whole: true })}
+              hint={summary.utilization !== null ? `${summary.utilization}% of card limits` : "Cards & loans"}
+              tone={summary.utilization !== null && summary.utilization >= 30 ? "warn" : "neutral"}
+            />
+            <Stat
+              label="This month"
+              icon={Wallet}
+              value={fmt.money(summary.monthSpend, summary.currency, { whole: true })}
+              hint={`spent · ${fmt.money(summary.monthIncome, summary.currency, { whole: true })} in`}
+            />
+          </div>
+          <Card className="p-4 sm:p-5">
+            <BalanceChart
+              label="Net worth"
+              currency={summary.currency}
+              points={data.netWorthHistory.map((p) => ({ day: p.day, value: Math.round((p.cash - p.owed) * 100) / 100 }))}
+              detail={(i) => {
+                const p = data.netWorthHistory[i];
+                return p ? `cash ${fmt.money(p.cash, summary.currency, { whole: true })} · owed ${fmt.money(p.owed, summary.currency, { whole: true })}` : null;
+              }}
+            />
+          </Card>
+          <Card className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 text-[13px] text-ink-2 sm:p-5">
+            <Mail className="size-4 text-good" aria-hidden />
+            <span className="min-w-0 flex-1">
+              <strong className="text-ink">{summary.matchedReceipts}</strong> bank transactions matched to receipts in your mail (counted once).{" "}
+              <strong className="text-ink">{summary.unmatchedTransactions}</strong> purchases have no receipt.
+            </span>
+            <Button size="sm" variant="ghost" icon={Sparkles} loading={categorizing} onClick={() => void categorize()}>
+              AI categorize
+            </Button>
+          </Card>
+          {cash.length ? (
+            <Card className="overflow-hidden">
+              <CardHeader title="Cash" icon={PiggyBank} eyebrow={fmt.money(summary.cash, summary.currency)} />
+              <div className="mt-2 divide-y divide-line border-t border-line">
+                {cash.map((a) => (
+                  <AccountRow key={a.id} account={a} onOpen={() => setEditing(a)} />
+                ))}
+              </div>
+            </Card>
+          ) : null}
+          {owed.length ? (
+            <Card className="overflow-hidden">
+              <CardHeader title="Cards & loans" icon={CreditCard} eyebrow={fmt.money(summary.owed, summary.currency)} />
+              <div className="mt-2 divide-y divide-line border-t border-line">
+                {owed.map((a) => (
+                  <AccountRow key={a.id} account={a} onOpen={() => setEditing(a)} />
+                ))}
+              </div>
+            </Card>
+          ) : null}
+          <div className="flex flex-wrap justify-between gap-2 px-1 text-[13px]">
+            <Link to="/accounts" className="font-medium text-accent hover:underline">
+              Manage connections →
+            </Link>
+            <button type="button" className="font-medium text-accent hover:underline" onClick={onConnect}>
+              Add a bank or import a statement
+            </button>
+          </div>
+        </>
+      )}
+      <BankAccountSheet key={editing?.id ?? "none"} account={editing} connection={editing ? connectionOf(editing) : null} onClose={() => setEditing(null)} />
     </div>
   );
 }
@@ -721,6 +859,9 @@ export function MoneyPage() {
   const [billId, setBillId] = useState<number | null>(null);
   const [addBill, setAddBill] = useState(false);
   const [addCharge, setAddCharge] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+  const banking = useBanking();
+  const bankAccounts = useBankAccounts(banking.data?.connections);
   useTakeParam("bill", (v) => setBillId(Number(v) || null));
   const setTab = (t: Tab) => {
     const next = new URLSearchParams(params);
@@ -735,10 +876,10 @@ export function MoneyPage() {
     <div className="space-y-4">
       <PageHeader
         title="Bills & spending"
-        description="Bills and due dates, every receipt and bank alert as a transaction, and where your money goes."
+        description="Bank and card balances, bills and due dates, every transaction from your bank and your mail — matched so nothing counts twice."
         actions={
-          <Button size="sm" variant="primary" icon={Plus} onClick={() => (tab === "activity" ? setAddCharge(true) : setAddBill(true))}>
-            {tab === "activity" ? "Transaction" : "Bill"}
+          <Button size="sm" variant="primary" icon={Plus} onClick={() => (tab === "accounts" ? setConnecting(true) : tab === "activity" ? setAddCharge(true) : setAddBill(true))}>
+            {tab === "accounts" ? "Bank" : tab === "activity" ? "Transaction" : "Bill"}
           </Button>
         }
       />
@@ -748,6 +889,7 @@ export function MoneyPage() {
         onChange={setTab}
         options={[
           { value: "overview", label: "Overview" },
+          { value: "accounts", label: "Accounts" },
           { value: "bills", label: "Bills", count: data?.billsSummary.dueCount || undefined },
           { value: "activity", label: "Activity" },
           { value: "documents", label: "Docs" },
@@ -764,6 +906,8 @@ export function MoneyPage() {
         </div>
       ) : tab === "overview" ? (
         <OverviewTab money={data} onBill={(b) => setBillId(b.id)} />
+      ) : tab === "accounts" ? (
+        <AccountsTab onConnect={() => setConnecting(true)} />
       ) : tab === "bills" ? (
         <BillsTab money={data} onBill={(b) => setBillId(b.id)} onAdd={() => setAddBill(true)} />
       ) : tab === "activity" ? (
@@ -774,6 +918,7 @@ export function MoneyPage() {
       <BillSheet key={bill?.id ?? "none"} bill={bill} onClose={() => setBillId(null)} />
       <AddBillSheet open={addBill} onClose={() => setAddBill(false)} />
       <AddChargeSheet open={addCharge} onClose={() => setAddCharge(false)} />
+      <ConnectBankSheet open={connecting} onClose={() => setConnecting(false)} providers={banking.data?.providers} accounts={bankAccounts} />
     </div>
   );
 }

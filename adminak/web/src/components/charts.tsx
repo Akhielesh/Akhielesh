@@ -203,3 +203,116 @@ export function Sparkline({ points, currency, className }: { points: { at: strin
     </div>
   );
 }
+
+/** One balance series over time (net worth, an account's balance), with a crosshair and table twin. */
+export function BalanceChart({
+  points,
+  currency,
+  label,
+  height = 150,
+  detail,
+}: {
+  points: { day: string; value: number }[];
+  currency: string;
+  label: string;
+  height?: number;
+  /** Extra line for the hovered day (e.g. "cash $x · owed $y"). */
+  detail?: (index: number) => ReactNode;
+}) {
+  const fmt = useFmt();
+  const box = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(640);
+  const [active, setActive] = useState<number | null>(null);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => setWidth(Math.max(200, Math.round(entry!.contentRect.width))));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const geometry = useMemo(() => {
+    if (points.length < 2) return null;
+    const values = points.map((p) => p.value);
+    let min = Math.min(...values);
+    let max = Math.max(...values);
+    const pad = (max - min) * 0.12 || Math.max(1, Math.abs(max) * 0.05);
+    min -= pad;
+    max += pad;
+    const left = 4;
+    const right = width - 4;
+    const top = 8;
+    const bottom = height - 4;
+    const xs = points.map((_, i) => left + (i / (points.length - 1)) * (right - left));
+    const ys = points.map((p) => bottom - ((p.value - min) / (max - min)) * (bottom - top));
+    return { xs, ys, bottom };
+  }, [points, width, height]);
+  const last = points.length - 1;
+  const shown = active ?? last;
+  const tip = points[shown];
+  return (
+    <ChartFrame
+      title={
+        tip ? (
+          <span className={active === null ? undefined : "text-ink"}>
+            {fmt.date(`${tip.day}T12:00:00Z`, "monthDay")} · <strong className="tabular text-ink">{fmt.money(tip.value, currency)}</strong>
+            {detail ? <span className="text-muted"> · {detail(shown)}</span> : null}
+          </span>
+        ) : (
+          label
+        )
+      }
+      table={
+        <div className="max-h-72 overflow-auto rounded-xl border border-line">
+          <table className="tabular w-full text-sm">
+            <thead className="bg-surface-2 text-left text-[12px] text-muted">
+              <tr>
+                <th className="px-3 py-2 font-medium">Day</th>
+                <th className="px-3 py-2 text-right font-medium">{label}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...points].reverse().filter((_, i) => i % 7 === 0).map((p) => (
+                <tr key={p.day} className="border-t border-line">
+                  <td className="px-3 py-2">{fmt.date(`${p.day}T12:00:00Z`, "medium")}</td>
+                  <td className="px-3 py-2 text-right">{fmt.money(p.value, currency)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      }
+    >
+      <div ref={box} className="w-full">
+        {geometry ? (
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            className="w-full touch-pan-y"
+            style={{ height }}
+            role="img"
+            aria-label={`${label}: ${fmt.money(points[0]!.value, currency)} on ${points[0]!.day} to ${fmt.money(points[last]!.value, currency)} on ${points[last]!.day}`}
+            onPointerMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = ((e.clientX - rect.left) / rect.width) * width;
+              let best = 0;
+              for (let i = 1; i < geometry.xs.length; i++) if (Math.abs(geometry.xs[i]! - x) < Math.abs(geometry.xs[best]! - x)) best = i;
+              setActive(best);
+            }}
+            onPointerLeave={() => setActive(null)}
+          >
+            <line x1={0} x2={width} y1={geometry.bottom} y2={geometry.bottom} stroke="var(--border-strong)" />
+            <path
+              d={`M${geometry.xs[0]},${geometry.bottom} ${geometry.xs.map((x, i) => `L${x.toFixed(1)},${geometry.ys[i]!.toFixed(1)}`).join(" ")} L${geometry.xs[last]},${geometry.bottom} Z`}
+              fill="var(--series)"
+              opacity={0.09}
+            />
+            <path d={geometry.xs.map((x, i) => `${i ? "L" : "M"}${x.toFixed(1)},${geometry.ys[i]!.toFixed(1)}`).join(" ")} fill="none" stroke="var(--series)" strokeWidth={2} strokeLinejoin="round" />
+            {active !== null ? <line x1={geometry.xs[active]} x2={geometry.xs[active]} y1={0} y2={geometry.bottom} stroke="var(--border-strong)" strokeDasharray="3 3" /> : null}
+            <circle cx={geometry.xs[shown]} cy={geometry.ys[shown]} r={4.5} fill="var(--series)" stroke="var(--surface)" strokeWidth={2} />
+          </svg>
+        ) : (
+          <p className="py-6 text-center text-sm text-muted">Not enough history yet.</p>
+        )}
+      </div>
+    </ChartFrame>
+  );
+}

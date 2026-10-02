@@ -7,8 +7,11 @@ import {
   Copy,
   Eye,
   EyeOff,
+  FileUp,
   FlaskConical,
   History,
+  Landmark,
+  Link2,
   KeyRound,
   Mail,
   Pause,
@@ -21,16 +24,17 @@ import {
   Trash2,
   Webhook,
 } from "lucide-react";
-import type { AccountDTO } from "@shared/types";
+import type { AccountDTO, FinAccountDTO } from "@shared/types";
 import { del, errorMessage, patch, post } from "../lib/api";
-import { actions, useAccounts, useAutomation, useInvalidateData, type AccountsResponse } from "../lib/queries";
+import { actions, useAccounts, useAutomation, useBanking, useInvalidateData, type AccountsResponse } from "../lib/queries";
+import { BankAccountSheet, BankConnectionCard, ConnectBankSheet, useBankAccounts, useTellerConnect } from "../components/bank";
 import { useTakeParam } from "../lib/hooks";
 import { useFmt } from "../lib/prefs";
 import { cn, copyText } from "../lib/utils";
 import { PageHeader } from "../components/layout";
 import { Sheet } from "../components/sheet";
 import { useToast } from "../components/toast";
-import { Badge, Button, Card, CardHeader, EmptyState, Field, Input, Progress, Segmented, Select, Skeleton, Switch } from "../components/ui";
+import { Badge, Button, Card, CardHeader, EmptyState, Field, Input, Progress, SectionTitle, Segmented, Select, Skeleton, Switch } from "../components/ui";
 
 const PROVIDER_LABEL: Record<AccountDTO["provider"], string> = { gmail: "Gmail", imap: "IMAP", demo: "Demo", webhook: "Automation inbox" };
 
@@ -392,10 +396,13 @@ function ImapForm({ presets, onDone }: { presets: AccountsResponse["presets"]; o
   );
 }
 
-function AddMailboxSheet({ open, onClose, data }: { open: boolean; onClose: () => void; data: AccountsResponse }) {
+function AddMailboxSheet({ open, onClose, data, initialMethod }: { open: boolean; onClose: () => void; data: AccountsResponse; initialMethod?: "gmail" | "imap" }) {
   const toast = useToast();
   const invalidate = useInvalidateData();
-  const [method, setMethod] = useState<"gmail" | "imap">(data.google ? "gmail" : "imap");
+  const [method, setMethod] = useState<"gmail" | "imap">(initialMethod ?? (data.google ? "gmail" : "imap"));
+  useEffect(() => {
+    if (open && initialMethod) setMethod(initialMethod);
+  }, [open, initialMethod]);
   const [labels, setLabels] = useState(false);
   const [send, setSend] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -470,7 +477,7 @@ function AddMailboxSheet({ open, onClose, data }: { open: boolean; onClose: () =
             <Sparkles className="mt-0.5 size-5 shrink-0 text-accent" aria-hidden />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-ink">Just exploring?</p>
-              <p className="mt-0.5 text-[13px] text-muted">Load ~100 realistic sample emails to see subscriptions, bills, trips and alerts in action. Remove them anytime.</p>
+              <p className="mt-0.5 text-[13px] text-muted">Load ~100 realistic sample emails and a sample Capital One checking, savings and card to see subscriptions, bills, bank matching and alerts in action. Remove them anytime.</p>
               <Button size="sm" className="mt-3" loading={busy} disabled={hasDemo} onClick={() => void demo()}>
                 {hasDemo ? "Demo loaded" : "Load demo inbox"}
               </Button>
@@ -602,24 +609,95 @@ function Automations() {
   );
 }
 
+type AddTarget = "gmail" | "imap" | "bank" | "capital_one" | "simplefin" | "import";
+
+/** The "add a connection" picker: every connector in one place, with its readiness. */
+function AddConnectionSheet({ open, onClose, onPick, google, teller }: { open: boolean; onClose: () => void; onPick: (t: AddTarget) => void; google: boolean; teller: boolean }) {
+  const groups: { title: string; items: { id: AddTarget; icon: typeof Mail; title: string; detail: string; badge: string; tone: "good" | "warn" | "neutral" }[] }[] = [
+    {
+      title: "Email",
+      items: [
+        { id: "gmail", icon: Mail, title: "Gmail", detail: google ? "Sign in with Google — read-only." : "One-click needs a Google OAuth client; or use an app password over IMAP.", badge: google ? "One tap" : "Needs setup", tone: google ? "good" : "warn" },
+        { id: "imap", icon: Server, title: "iCloud, Outlook, Yahoo, Fastmail, any IMAP", detail: "Add as many inboxes as you like with an app password.", badge: "2 minutes", tone: "neutral" },
+      ],
+    },
+    {
+      title: "Banks & cards",
+      items: [
+        { id: "capital_one", icon: Landmark, title: "Capital One", detail: "Checking, savings and cards through Teller's secure login. Balances and transactions refresh on their own.", badge: teller ? "One tap" : "Needs setup", tone: teller ? "good" : "warn" },
+        { id: "simplefin", icon: Link2, title: "Any bank via SimpleFIN", detail: "Paste a setup token from SimpleFIN Bridge — most US banks and credit unions.", badge: "Paste a token", tone: "neutral" },
+        { id: "import", icon: FileUp, title: "Statement file", detail: "CSV, OFX or QFX from any bank's website. Re-importing never duplicates.", badge: "No setup", tone: "good" },
+      ],
+    },
+  ];
+  return (
+    <Sheet open={open} onClose={onClose} title="Add a connection" subtitle="Everything is read-only and stays on your server.">
+      <div className="space-y-5">
+        {groups.map((g) => (
+          <div key={g.title}>
+            <p className="eyebrow mb-2 px-1">{g.title}</p>
+            <div className="space-y-2">
+              {g.items.map((item) => (
+                <button key={item.id} type="button" onClick={() => onPick(item.id)} className="card flex w-full items-start gap-3 p-3.5 text-left transition-colors hover:border-line-strong">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-surface-2 text-ink-2">
+                    {item.id === "gmail" ? <GoogleMark /> : <item.icon className="size-5" aria-hidden />}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="text-[14.5px] font-semibold text-ink">{item.title}</span>
+                      <Badge tone={item.tone}>{item.badge}</Badge>
+                    </span>
+                    <span className="mt-0.5 block text-[12.5px] text-muted">{item.detail}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+        <p className="px-1 text-[12.5px] text-muted">
+          Forwarding rules, Zapier, Shortcuts and other automations post to Adminak's hooks — see <strong className="text-ink-2">Automations</strong> on this page.
+        </p>
+      </div>
+    </Sheet>
+  );
+}
+
 export function AccountsPage() {
   const accounts = useAccounts();
+  const banking = useBanking();
   const fmt = useFmt();
   const toast = useToast();
   const invalidate = useInvalidateData();
-  const [adding, setAdding] = useState(false);
+  const [picking, setPicking] = useState(false);
+  const [adding, setAdding] = useState<"gmail" | "imap" | null>(null);
+  const [bankSheet, setBankSheet] = useState<"pick" | "teller-setup" | "simplefin" | "import" | null>(null);
   const [welcome, setWelcome] = useState(false);
   const [editing, setEditing] = useState<AccountDTO | null>(null);
+  const [editingBank, setEditingBank] = useState<FinAccountDTO | null>(null);
   const [clearing, setClearing] = useState(false);
-  useTakeParam("add", () => setAdding(true));
+  const teller = useTellerConnect(banking.data?.providers);
+  useTakeParam("add", () => setPicking(true));
   useTakeParam("welcome", () => setWelcome(true));
   useTakeParam("connected", (email) => toast.success(`${email} connected — scanning your mail now`));
   useTakeParam("error", (error) => toast.error(error === "state" ? "The Google sign-in expired. Try again." : `Google connection failed: ${error}`));
 
   const data = accounts.data;
+  const bankData = banking.data;
+  const bankAccounts = useBankAccounts(bankData?.connections);
   useEffect(() => {
-    if (welcome && data && data.accounts.length === 0) setAdding(true);
+    if (welcome && data && data.accounts.length === 0) setPicking(true);
   }, [welcome, data]);
+
+  const pick = (target: AddTarget) => {
+    setPicking(false);
+    if (target === "gmail" || target === "imap") setAdding(target);
+    else if (target === "capital_one") {
+      if (bankData?.providers.teller.configured) void teller.open({ institution: "capital_one" });
+      else setBankSheet("teller-setup");
+    } else if (target === "simplefin") setBankSheet("simplefin");
+    else if (target === "import") setBankSheet("import");
+    else setBankSheet("pick");
+  };
 
   const clearDemo = async () => {
     setClearing(true);
@@ -633,16 +711,19 @@ export function AccountsPage() {
       setClearing(false);
     }
   };
-  const hasDemo = data?.accounts.some((a) => a.provider === "demo");
+  const hasDemo = data?.accounts.some((a) => a.provider === "demo") || bankData?.connections.some((c) => c.provider === "demo");
+  const mailboxes = data?.accounts ?? [];
+  const banks = bankData?.connections ?? [];
+  const attention = mailboxes.filter((a) => a.status === "error").length + banks.filter((b) => b.status === "error").length;
 
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Mailboxes"
-        description="Connected inboxes Adminak scans continuously. New mail is picked up every few minutes; history is imported on first connect."
+        title="Connections"
+        description="Every source Adminak reads — inboxes, banks and cards, statement files and automations — and how each one is doing."
         actions={
-          <Button size="sm" variant="primary" icon={Plus} onClick={() => setAdding(true)} disabled={!data}>
-            Connect
+          <Button size="sm" variant="primary" icon={Plus} onClick={() => setPicking(true)} disabled={!data}>
+            Add
           </Button>
         }
       />
@@ -651,43 +732,114 @@ export function AccountsPage() {
         <Card className="border-accent/30 bg-accent-soft/40 p-4 sm:p-5">
           <h2 className="text-[16px] font-semibold text-ink">Welcome to Adminak 👋</h2>
           <ol className="mt-2 space-y-1 text-[13.5px] text-ink-2">
-            <li>1. Connect a mailbox (or load the demo inbox to look around).</li>
-            <li>2. Check Notifications — alerts and the daily brief go to your personal email.</li>
-            <li>3. Add Adminak to your Home Screen for a full-screen app with push alerts.</li>
+            <li>1. Connect your inboxes (or load the demo to look around).</li>
+            <li>2. Connect Capital One or import a statement — receipts and bank transactions get matched.</li>
+            <li>3. Check Notifications — alerts and the daily brief go to your personal email.</li>
           </ol>
         </Card>
       ) : null}
 
+      {data ? (
+        <div className="flex flex-wrap items-center gap-2 px-1 text-[13px] text-muted">
+          <Badge icon={Mail}>{mailboxes.length} mailbox{mailboxes.length === 1 ? "" : "es"}</Badge>
+          <Badge icon={Landmark}>
+            {bankAccounts.length} bank account{bankAccounts.length === 1 ? "" : "s"}
+          </Badge>
+          {attention ? (
+            <Badge tone="bad" icon={CircleAlert}>
+              {attention} need{attention === 1 ? "s" : ""} attention
+            </Badge>
+          ) : mailboxes.length + banks.length > 0 ? (
+            <Badge tone="good" icon={CircleCheck}>
+              All healthy
+            </Badge>
+          ) : null}
+        </div>
+      ) : null}
+
+      <SectionTitle
+        action={
+          <Button size="sm" variant="ghost" icon={Plus} onClick={() => setAdding(data?.google ? "gmail" : "imap")} disabled={!data}>
+            Mailbox
+          </Button>
+        }
+      >
+        Email
+      </SectionTitle>
       {!data ? (
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           <Skeleton className="h-52" />
           <Skeleton className="h-52" />
         </div>
-      ) : data.accounts.length === 0 ? (
+      ) : mailboxes.length === 0 ? (
         <Card>
           <EmptyState
             icon={Mail}
             title="No mailboxes yet"
             action={
-              <Button variant="primary" icon={Plus} onClick={() => setAdding(true)}>
+              <Button variant="primary" icon={Plus} onClick={() => setAdding(data.google ? "gmail" : "imap")}>
                 Connect a mailbox
               </Button>
             }
           >
-            Connect Gmail with one click, or iCloud, Outlook, Yahoo, Fastmail and any IMAP inbox with an app password.
+            Gmail with one click, or iCloud, Outlook, Yahoo, Fastmail and any IMAP inbox with an app password. Connect as many as you have.
           </EmptyState>
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          {data.accounts.map((a) => (
+          {mailboxes.map((a) => (
             <AccountCard key={a.id} account={a} onEdit={() => setEditing(a)} />
+          ))}
+        </div>
+      )}
+
+      <SectionTitle
+        className="pt-2"
+        action={
+          <Button size="sm" variant="ghost" icon={Plus} onClick={() => setBankSheet("pick")} disabled={!bankData}>
+            Bank
+          </Button>
+        }
+      >
+        Banks & cards
+      </SectionTitle>
+      {!bankData ? (
+        <Skeleton className="h-40" />
+      ) : banks.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon={Landmark}
+            title="No banks yet"
+            action={
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button variant="primary" icon={Landmark} loading={teller.busy} onClick={() => pick("capital_one")}>
+                  Connect Capital One
+                </Button>
+                <Button icon={FileUp} onClick={() => setBankSheet("import")}>
+                  Import a statement
+                </Button>
+              </div>
+            }
+          >
+            Balances and every transaction, matched to the receipts in your mail — so spending is counted once and nothing slips by without a receipt.
+          </EmptyState>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {banks.map((c) => (
+            <BankConnectionCard
+              key={c.id}
+              connection={c}
+              onAccount={setEditingBank}
+              onReconnect={(conn) => (conn.provider === "teller" ? void teller.open({}) : setBankSheet(conn.provider === "simplefin" ? "simplefin" : "pick"))}
+            />
           ))}
         </div>
       )}
 
       {hasDemo ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-line-strong px-4 py-3">
-          <p className="text-[13px] text-muted">You're looking at demo data. Remove it before connecting your real inbox for clean numbers.</p>
+          <p className="text-[13px] text-muted">You're looking at demo data. Remove it before connecting your real inbox and bank for clean numbers.</p>
           <Button size="sm" variant="danger" icon={Trash2} loading={clearing} onClick={() => void clearDemo()}>
             Remove demo data
           </Button>
@@ -697,14 +849,14 @@ export function AccountsPage() {
       <Automations />
 
       <Card className="overflow-hidden">
-        <CardHeader title="Scan history" icon={History} />
+        <CardHeader title="Refresh history" icon={History} />
         <div className="mt-2 overflow-x-auto">
           {data?.runs.length ? (
             <table className="tabular w-full min-w-[520px] text-[13px]">
               <thead className="text-left text-[12px] text-muted">
                 <tr className="border-y border-line bg-surface-3/60">
                   <th className="px-4 py-2 font-medium sm:px-5">When</th>
-                  <th className="px-3 py-2 font-medium">Mailbox</th>
+                  <th className="px-3 py-2 font-medium">Source</th>
                   <th className="px-3 py-2 font-medium">Trigger</th>
                   <th className="px-3 py-2 text-right font-medium">New</th>
                   <th className="px-3 py-2 text-right font-medium">Alerts</th>
@@ -715,7 +867,10 @@ export function AccountsPage() {
                 {data.runs.map((r) => (
                   <tr key={r.id} className="border-b border-line last:border-b-0">
                     <td className="px-4 py-2 whitespace-nowrap text-ink-2 sm:px-5">{fmt.date(r.startedAt, "datetime")}</td>
-                    <td className="max-w-40 truncate px-3 py-2 text-ink">{r.accountLabel ?? "All"}</td>
+                    <td className="max-w-40 truncate px-3 py-2 text-ink">
+                      {r.finConnectionId ? <Landmark className="mr-1 inline size-3.5 text-muted" aria-label="Bank" /> : <Mail className="mr-1 inline size-3.5 text-muted" aria-label="Mailbox" />}
+                      {r.accountLabel ?? "All"}
+                    </td>
                     <td className="px-3 py-2 text-muted capitalize">{r.trigger}</td>
                     <td className="px-3 py-2 text-right text-ink">{r.newMessages}</td>
                     <td className="px-3 py-2 text-right text-ink">{r.alertsCreated}</td>
@@ -730,13 +885,16 @@ export function AccountsPage() {
               </tbody>
             </table>
           ) : (
-            <p className="px-5 pb-5 text-sm text-muted">No scans yet.</p>
+            <p className="px-5 pb-5 text-sm text-muted">Nothing has refreshed yet.</p>
           )}
         </div>
       </Card>
 
-      {data ? <AddMailboxSheet open={adding} onClose={() => setAdding(false)} data={data} /> : null}
+      <AddConnectionSheet open={picking} onClose={() => setPicking(false)} onPick={pick} google={!!data?.google} teller={!!bankData?.providers.teller.configured} />
+      {data ? <AddMailboxSheet open={adding !== null} onClose={() => setAdding(null)} data={data} initialMethod={adding ?? undefined} /> : null}
+      <ConnectBankSheet open={bankSheet !== null} onClose={() => setBankSheet(null)} providers={bankData?.providers} accounts={bankAccounts} initial={bankSheet ?? "pick"} />
       {editing ? <EditAccountSheet key={editing.id} account={editing} onClose={() => setEditing(null)} /> : null}
+      <BankAccountSheet key={editingBank?.id ?? "none"} account={editingBank} connection={banks.find((b) => b.id === editingBank?.connectionId) ?? null} onClose={() => setEditingBank(null)} />
     </div>
   );
 }

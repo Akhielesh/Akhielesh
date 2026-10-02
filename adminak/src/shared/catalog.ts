@@ -60,6 +60,9 @@ export const ALERT_TYPES: Record<string, AlertTypeMeta> = {
   "finance.refund": { label: "Refund", category: "finance", severity: "low", description: "A refund was issued" },
   "finance.tax_document": { label: "Tax document", category: "finance", severity: "medium", description: "A tax form is available" },
   "finance.credit": { label: "Credit report change", category: "finance", severity: "medium", description: "Your credit report or score changed" },
+  "finance.fee": { label: "Bank fee", category: "finance", severity: "high", description: "Your bank charged an overdraft, late, foreign-transaction or interest fee" },
+  "finance.duplicate_charge": { label: "Possible double charge", category: "finance", severity: "high", description: "The same merchant charged the same amount twice within two days" },
+  "finance.high_utilization": { label: "High card utilization", category: "finance", severity: "medium", description: "A card balance passed your share-of-limit threshold" },
   "security.suspicious": { label: "Suspicious activity", category: "security", severity: "critical", description: "A provider flagged suspicious account activity" },
   "security.breach": { label: "Data breach", category: "security", severity: "critical", description: "Your data appeared in a breach" },
   "security.new_signin": { label: "New sign-in", category: "security", severity: "medium", description: "A new device or location signed in" },
@@ -85,6 +88,7 @@ export const ALERT_TYPES: Record<string, AlertTypeMeta> = {
   "dev.failure": { label: "Build / deploy failure", category: "updates", severity: "medium", description: "A deploy, build or CI run failed" },
   "rule.match": { label: "Custom rule", category: "other", severity: "medium", description: "One of your rules matched" },
   "system.sync_error": { label: "Mailbox needs attention", category: "updates", severity: "high", description: "A connected mailbox failed to sync" },
+  "system.bank_error": { label: "Bank connection needs attention", category: "finance", severity: "high", description: "A connected bank stopped refreshing" },
   "system.login": { label: "Console sign-in", category: "security", severity: "medium", description: "Someone signed in to Adminak" },
 };
 

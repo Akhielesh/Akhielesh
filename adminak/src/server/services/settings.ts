@@ -66,6 +66,15 @@ const sectionSchemas = {
         .regex(/^[\w .&-]+$/, "Letters, numbers, spaces, dots, dashes only"),
     })
     .partial(),
+  banking: z
+    .object({
+      syncHours: z.number().int().min(1).max(48),
+      lowBalanceThreshold: z.number().min(0).max(1_000_000),
+      utilizationAlertPercent: z.number().int().min(0).max(100),
+      feeAlerts: z.boolean(),
+      duplicateAlerts: z.boolean(),
+    })
+    .partial(),
 } as const;
 
 export const SettingsPatchSchema = z
@@ -75,6 +84,7 @@ export const SettingsPatchSchema = z
     notifications: sectionSchemas.notifications,
     ai: sectionSchemas.ai,
     gmail: sectionSchemas.gmail,
+    banking: sectionSchemas.banking,
   })
   .partial();
 
@@ -108,6 +118,7 @@ export function defaultSettings(opts: { syncIntervalMinutes: number; aiAvailable
     },
     ai: { enabled: opts.aiAvailable, mode: "smart", dailyLimit: 150, briefing: true },
     gmail: { applyLabels: false, labelPrefix: "Adminak" },
+    banking: { syncHours: 6, lowBalanceThreshold: 200, utilizationAlertPercent: 70, feeAlerts: true, duplicateAlerts: true },
   };
 }
 

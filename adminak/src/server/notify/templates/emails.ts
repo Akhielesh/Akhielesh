@@ -420,7 +420,7 @@ ${facts([
 
 export function renderWelcomeEmail(env: TemplateEnv): EmailContent {
   const steps: ListRow[] = [
-    { left: "1", title: "Connect a mailbox", subtitle: "Gmail (one click) or any IMAP inbox with an app password.", href: `${env.appUrl}/accounts` },
+    { left: "1", title: "Connect your inboxes and bank", subtitle: "Gmail or any IMAP inbox, plus Capital One (or a statement file) for balances and transactions.", href: `${env.appUrl}/accounts` },
     { left: "2", title: "Review your subscriptions", subtitle: "Adminak builds the list from receipts and renewal notices.", href: `${env.appUrl}/subscriptions` },
     { left: "3", title: "Tune notifications", subtitle: "Pick what's instant, what waits for the daily brief, and quiet hours.", href: `${env.appUrl}/notifications` },
     { left: "4", title: "Subscribe to your calendar feed", subtitle: "Renewals, bills, trips and interviews in your calendar.", href: `${env.appUrl}/timeline` },

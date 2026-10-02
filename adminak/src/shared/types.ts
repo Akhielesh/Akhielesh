@@ -58,6 +58,7 @@ export const CHARGE_KINDS = [
   "transfer_in",
   "transfer_out",
   "fee",
+  "card_payment",
 ] as const;
 export type ChargeKind = (typeof CHARGE_KINDS)[number];
 
@@ -77,6 +78,10 @@ export const SPEND_CATEGORIES = [
 export type SpendCategory = (typeof SPEND_CATEGORIES)[number];
 
 export type ProviderKind = "gmail" | "imap" | "demo" | "webhook";
+
+export const FIN_ACCOUNT_TYPES = ["checking", "savings", "credit", "loan", "investment", "other"] as const;
+export type FinAccountType = (typeof FIN_ACCOUNT_TYPES)[number];
+export type FinProviderKind = "teller" | "simplefin" | "file" | "demo";
 export type AccountStatus = "active" | "paused" | "error";
 
 export const CHANNEL_TYPES = ["email", "push", "ntfy", "slack", "discord", "telegram", "webhook"] as const;
@@ -145,6 +150,18 @@ export interface Settings {
   gmail: {
     applyLabels: boolean;
     labelPrefix: string;
+  };
+  banking: {
+    /** Hours between automatic bank refreshes (bank feeds update a few times a day). */
+    syncHours: number;
+    /** Alert when a checking or savings balance drops below this (0 = off). */
+    lowBalanceThreshold: number;
+    /** Alert when a card's balance passes this share of its limit (0 = off). */
+    utilizationAlertPercent: number;
+    /** Alert on bank fees (overdraft, late, foreign transaction, interest). */
+    feeAlerts: boolean;
+    /** Alert when the same merchant charges the same amount twice within two days. */
+    duplicateAlerts: boolean;
   };
 }
 
@@ -257,7 +274,26 @@ export interface ChargeDTO {
   subscriptionId: number | null;
   billId: number | null;
   messageId: number | null;
-  source: "email" | "manual";
+  source: ChargeSource;
+  /** Cleaned merchant name from a bank feed or statement ("Netflix", "Trader Joe's"). */
+  merchant: string | null;
+  /** The bank or card account the money moved in, for bank and imported transactions. */
+  account: FinAccountRef | null;
+  /** For a bank transaction: the email receipt matched to it (that receipt no longer counts on its own). */
+  receipt: { chargeId: number; messageId: number | null; description: string } | null;
+  /** For an email or alert charge: the bank transaction that superseded it. */
+  supersededBy: number | null;
+  categorySource: "rule" | "bank" | "ai" | "auto" | "user" | null;
+}
+
+export type ChargeSource = "email" | "card_alert" | "manual" | "bank" | "import";
+
+export interface FinAccountRef {
+  id: number;
+  name: string;
+  institution: string | null;
+  mask: string | null;
+  type: FinAccountType;
 }
 
 export interface SubscriptionDetailDTO extends SubscriptionDTO {
@@ -529,6 +565,8 @@ export interface AccountDTO {
 export interface SyncRunDTO {
   id: number;
   accountId: number | null;
+  /** Set for bank refreshes (accountId is then null). */
+  finConnectionId: number | null;
   accountLabel: string | null;
   trigger: string;
   status: "running" | "ok" | "error";
@@ -680,4 +718,108 @@ export interface AskResponse {
   answer: string;
   sources: MessageRef[];
   mode: "ai" | "search";
+}
+
+// ─── Banking ─────────────────────────────────────────────────────────────────
+
+export interface FinAccountDTO extends FinAccountRef {
+  connectionId: number;
+  subtype: string | null;
+  currency: string;
+  balanceCurrent: number | null;
+  balanceAvailable: number | null;
+  creditLimit: number | null;
+  balanceAt: string | null;
+  invertAmounts: boolean;
+  hidden: boolean;
+  transactionCount: number;
+  lastTransactionAt: string | null;
+  /** Daily balances for the last 90 days (oldest first). */
+  history: { day: string; balance: number }[];
+}
+
+export interface FinConnectionDTO {
+  id: number;
+  provider: FinProviderKind;
+  label: string;
+  institution: string | null;
+  status: "active" | "paused" | "error";
+  lastSyncAt: string | null;
+  lastSuccessAt: string | null;
+  lastError: string | null;
+  syncing: boolean;
+  createdAt: string;
+  accounts: FinAccountDTO[];
+}
+
+export interface BankingProviders {
+  teller: { configured: boolean; applicationId: string | null; environment: string };
+  simplefin: { enabled: boolean };
+  imports: { formats: string[] };
+}
+
+export interface BankingSummary {
+  currency: string;
+  /** Checking + savings. */
+  cash: number;
+  /** Owed on cards and loans (positive number). */
+  owed: number;
+  netWorth: number;
+  creditLimit: number;
+  utilization: number | null;
+  /** Spending (money out, excluding transfers and card payments) this month, from bank data only. */
+  monthSpend: number;
+  monthIncome: number;
+  /** Email receipts matched to bank transactions in the last 90 days. */
+  matchedReceipts: number;
+  /** Bank transactions in the last 90 days with no receipt in your mail. */
+  unmatchedTransactions: number;
+}
+
+export interface BankingDTO {
+  providers: BankingProviders;
+  connections: FinConnectionDTO[];
+  summary: BankingSummary | null;
+  netWorthHistory: { day: string; cash: number; owed: number }[];
+}
+
+export interface ImportPreviewDTO {
+  format: string;
+  formatLabel: string;
+  kind: "csv" | "ofx";
+  count: number;
+  from: string | null;
+  to: string | null;
+  totalOut: number;
+  totalIn: number;
+  currency: string;
+  account: { name: string | null; type: FinAccountType | null; mask: string | null; institution: string | null };
+  /** Columns for generic CSVs, so the user can fix the mapping. */
+  columns: string[];
+  mapping: CsvMapping | null;
+  sample: { date: string; description: string; amount: number; category: string | null }[];
+  warnings: string[];
+}
+
+export interface CsvMapping {
+  date: number;
+  description: number;
+  /** Signed amount column, or -1 when the file has separate debit/credit columns. */
+  amount: number;
+  debit: number;
+  credit: number;
+  category: number;
+  /** A column that says "Debit"/"Credit" for an unsigned amount (Capital One 360), or -1. */
+  direction: number;
+  /** Positive amounts are money out (card statements); otherwise positive = money in. */
+  positiveIsOut: boolean;
+}
+
+export interface ImportResultDTO {
+  accountId: number;
+  inserted: number;
+  duplicates: number;
+  matched: number;
+  from: string | null;
+  to: string | null;
 }

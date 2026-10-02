@@ -8,6 +8,7 @@ import type { AppContext } from "../context.js";
 import { SESSION_COOKIE, sessionUser } from "../services/auth.js";
 import { setSessionCookie, accountSecurityRoutes, authRoutes } from "./routes/auth.js";
 import { accountRoutes } from "./routes/accounts.js";
+import { bankingRoutes } from "./routes/banking.js";
 import { alertRoutes, subscriptionRoutes } from "./routes/alerts.js";
 import { dashboardRoutes } from "./routes/dashboard.js";
 import { messageRoutes } from "./routes/messages.js";
@@ -33,6 +34,9 @@ function createRootApp(ctx: AppContext) {
   const app = new Hono<AppEnv>();
   const apiLimiter = new RateLimiter(1500, 60_000);
   const appOrigin = new URL(ctx.config.appUrl).origin;
+  // Teller Connect (bank linking) is a script + iframe served by teller.io; allowed only when configured.
+  const teller = ctx.config.teller ? " https://cdn.teller.io https://teller.io https://*.teller.io" : "";
+  const csp = `default-src 'self'; script-src 'self'${ctx.config.teller ? " https://cdn.teller.io" : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'${teller}; frame-src 'self'${teller}; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; worker-src 'self'`;
 
   // Security headers on every response.
   app.use("*", async (c, next) => {
@@ -42,10 +46,7 @@ function createRootApp(ctx: AppContext) {
     c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
     c.header("Cross-Origin-Opener-Policy", "same-origin");
     if (!c.res.headers.get("Content-Security-Policy")) {
-      c.header(
-        "Content-Security-Policy",
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; worker-src 'self'",
-      );
+      c.header("Content-Security-Policy", csp);
       c.header("X-Frame-Options", "DENY");
     }
     // A private console: nothing here should be indexed, trained on or retrieved by AI.
@@ -111,6 +112,7 @@ function createRootApp(ctx: AppContext) {
   app.route("/api/subscriptions", subscriptionRoutes(ctx));
   app.route("/api", messageRoutes(ctx));
   app.route("/api", accountRoutes(ctx));
+  app.route("/api", bankingRoutes(ctx));
   app.route("/api", notificationRoutes(ctx));
   app.route("/api", systemRoutes(ctx));
 

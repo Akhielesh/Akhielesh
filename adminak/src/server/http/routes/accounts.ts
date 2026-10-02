@@ -7,6 +7,7 @@ import { IMAP_PRESETS, testImapConnection } from "../../ingest/imap.js";
 import { accountFromRow, createDemoAccount, deleteAccount, listSyncRuns, syncAccount, syncAll, type AccountRow } from "../../ingest/sync.js";
 import type { ImapSettings } from "../../ingest/types.js";
 import { randomToken } from "../../security/vault.js";
+import { createFinConnection, deleteFinConnection, syncFinConnection } from "../../finance/sync.js";
 import { HttpError, intParam, readJson, type AppEnv } from "../util.js";
 
 const imapSchema = z.object({
@@ -76,15 +77,17 @@ export function accountRoutes(ctx: AppContext) {
   });
 
   app.get("/accounts/google/callback", async (c) => {
+    // Back to the console's Accounts screen, wherever the console is mounted.
+    const accountsPage = `${ctx.config.basePath}/accounts`;
     const state = c.req.query("state") ?? "";
     const error = c.req.query("error");
     const stored = /^[\w-]{20,64}$/.test(state) ? getMeta(ctx.db, `oauth:${state}`) : null;
     if (stored) deleteMeta(ctx.db, `oauth:${state}`);
     const meta = parseJson<{ userId: number; labels: boolean; send: boolean; exp: number } | null>(stored, null);
-    if (!meta || meta.exp < Date.now() || meta.userId !== c.get("user").id) return c.redirect("/accounts?error=state", 302);
-    if (error) return c.redirect(`/accounts?error=${encodeURIComponent(error)}`, 302);
+    if (!meta || meta.exp < Date.now() || meta.userId !== c.get("user").id) return c.redirect(`${accountsPage}?error=state`, 302);
+    if (error) return c.redirect(`${accountsPage}?error=${encodeURIComponent(error)}`, 302);
     const code = c.req.query("code");
-    if (!code) return c.redirect("/accounts?error=missing_code", 302);
+    if (!code) return c.redirect(`${accountsPage}?error=missing_code`, 302);
     try {
       const { secret, scopes, email } = await exchangeGoogleCode(ctx, code);
       const existing = ctx.db.prepare("SELECT id, settings FROM accounts WHERE provider = 'gmail' AND email = ?").get(email) as { id: number; settings: string } | undefined;
@@ -105,10 +108,10 @@ export function accountRoutes(ctx: AppContext) {
       if (meta.labels) ctx.settings.patch({ gmail: { applyLabels: true } });
       audit(ctx, "account.connect", `gmail ${email}`);
       void syncAccount(ctx, id, "connect");
-      return c.redirect(`/accounts?connected=${encodeURIComponent(email)}`, 302);
+      return c.redirect(`${accountsPage}?connected=${encodeURIComponent(email)}`, 302);
     } catch (err) {
       ctx.log.warn("Google OAuth failed", { error: (err as Error).message });
-      return c.redirect(`/accounts?error=${encodeURIComponent((err as Error).message.slice(0, 160))}`, 302);
+      return c.redirect(`${accountsPage}?error=${encodeURIComponent((err as Error).message.slice(0, 160))}`, 302);
     }
   });
 
@@ -180,12 +183,18 @@ export function accountRoutes(ctx: AppContext) {
   app.post("/demo", async (c) => {
     const id = createDemoAccount(ctx);
     const outcome = await syncAccount(ctx, id, "demo");
+    // The demo bank (Capital One checking, savings and a card) lines up with the demo receipts.
+    let bank = ctx.db.prepare("SELECT id FROM fin_connections WHERE provider = 'demo'").get() as { id: number } | undefined;
+    if (!bank) bank = { id: createFinConnection(ctx, { provider: "demo", label: "Capital One (demo)", institution: "Capital One", institutionId: "capital_one" }) };
+    const bankOutcome = await syncFinConnection(ctx, bank.id, "demo");
     audit(ctx, "demo.load");
-    return c.json(outcome);
+    return c.json({ ...outcome, inserted: outcome.inserted + bankOutcome.inserted, alerts: outcome.alerts + bankOutcome.alerts, matched: bankOutcome.matched });
   });
 
   app.delete("/demo", (c) => {
     const row = ctx.db.prepare("SELECT id FROM accounts WHERE provider = 'demo'").get() as { id: number } | undefined;
+    const bank = ctx.db.prepare("SELECT id FROM fin_connections WHERE provider = 'demo'").get() as { id: number } | undefined;
+    if (bank) deleteFinConnection(ctx, bank.id);
     if (row) deleteAccount(ctx, row.id);
     audit(ctx, "demo.clear");
     return c.json({ ok: true });

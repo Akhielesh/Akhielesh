@@ -51,7 +51,7 @@ export function SyncButton({ compact }: { compact?: boolean }) {
   const progress = list.find((a) => a.progress)?.progress;
   const onClick = async () => {
     if (list.length === 0) {
-      toast.info("Connect a mailbox first — or load the demo inbox from Mailboxes.");
+      toast.info("Connect a mailbox first — or load the demo inbox from Connections.");
       return;
     }
     setStarting(true);

@@ -100,7 +100,7 @@ export function recomputeSubscription(ctx: AppContext, id: number): void {
   const now = ctx.now();
   const events = db.prepare("SELECT * FROM subscription_events WHERE subscription_id = ? ORDER BY occurred_at ASC, id ASC").all(id) as EventRow[];
   const charges = db
-    .prepare("SELECT amount, currency, occurred_at, status FROM charges WHERE subscription_id = ? AND direction = 'out' ORDER BY occurred_at ASC")
+    .prepare("SELECT amount, currency, occurred_at, status FROM charges WHERE subscription_id = ? AND direction = 'out' AND superseded_by IS NULL ORDER BY occurred_at ASC")
     .all(id) as ChargeLite[];
   const overrides = parseJson<SubscriptionOverrides>(sub.overrides, {});
 
@@ -249,8 +249,8 @@ export function recomputeAllSubscriptions(ctx: AppContext): void {
 
 export const SUBSCRIPTION_SELECT = `
   SELECT s.*, s.vendor_id AS vendor_id, ${VENDOR_COLUMNS},
-    (SELECT COUNT(*) FROM charges c WHERE c.subscription_id = s.id AND c.status = 'posted' AND c.direction = 'out') AS charge_count,
-    (SELECT COALESCE(SUM(c.amount), 0) FROM charges c WHERE c.subscription_id = s.id AND c.status = 'posted' AND c.direction = 'out') AS total_spent
+    (SELECT COUNT(*) FROM charges c WHERE c.subscription_id = s.id AND c.status = 'posted' AND c.direction = 'out' AND c.superseded_by IS NULL) AS charge_count,
+    (SELECT COALESCE(SUM(c.amount), 0) FROM charges c WHERE c.subscription_id = s.id AND c.status = 'posted' AND c.direction = 'out' AND c.superseded_by IS NULL) AS total_spent
   FROM subscriptions s LEFT JOIN vendors v ON v.id = s.vendor_id`;
 
 type SubscriptionJoinRow = SubscriptionRow & {

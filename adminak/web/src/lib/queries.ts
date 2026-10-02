@@ -26,6 +26,12 @@ import type {
   TemplateInfo,
   TimelineItem,
   ChargeDTO,
+  BankingDTO,
+  CsvMapping,
+  FinAccountType,
+  FinConnectionDTO,
+  ImportPreviewDTO,
+  ImportResultDTO,
 } from "@shared/types";
 import { del, get, patch, post } from "./api";
 
@@ -55,6 +61,7 @@ export const qk = {
   automation: ["automation"] as const,
   sessions: ["sessions"] as const,
   agents: ["agent-visits"] as const,
+  banking: ["banking"] as const,
 };
 
 export interface AgentActivity {
@@ -142,6 +149,13 @@ export const useAccounts = () =>
     refetchInterval: (query) => (query.state.data?.accounts.some((a) => a.syncing) ? 2000 : 30_000),
   });
 
+export const useBanking = () =>
+  useQuery({
+    queryKey: qk.banking,
+    queryFn: () => get<BankingDTO>("/banking"),
+    refetchInterval: (query) => (query.state.data?.connections.some((c) => c.syncing) ? 2000 : 60_000),
+  });
+
 export const useChannels = () => useQuery({ queryKey: qk.channels, queryFn: () => get<ChannelsResponse>("/channels") });
 export const useTemplates = () => useQuery({ queryKey: qk.templates, queryFn: () => get<TemplateInfo[]>("/templates"), staleTime: Infinity });
 export const useNotificationLog = () => useQuery({ queryKey: qk.log, queryFn: () => get<NotificationLogDTO[]>("/notifications/log") });
@@ -156,7 +170,7 @@ export const useSessions = () => useQuery({ queryKey: qk.sessions, queryFn: () =
 export function useInvalidateData() {
   const qc = useQueryClient();
   return () => {
-    for (const key of ["overview", "alerts", "subscriptions", "money", "charges", "timeline", "domain", "messages", "senders", "accounts", "system"]) {
+    for (const key of ["overview", "alerts", "subscriptions", "money", "charges", "timeline", "domain", "messages", "senders", "accounts", "system", "banking"]) {
       void qc.invalidateQueries({ queryKey: [key] });
     }
   };
@@ -193,4 +207,21 @@ export const actions = {
   clearDemo: () => del<{ ok: boolean }>("/demo"),
   logout: () => post<{ ok: boolean }>("/auth/logout"),
   ask: (question: string) => post<AskResponse>("/ask", { question }),
+  connectTeller: (body: { accessToken: string; enrollmentId: string; institution?: string; institutionId?: string }) => post<FinConnectionDTO>("/banking/teller", body),
+  connectSimplefin: (setupToken: string) => post<{ connection: FinConnectionDTO; outcome: { ok: boolean; inserted: number; matched: number; error: string | null } }>("/banking/simplefin", { setupToken }),
+  previewImport: (body: { filename: string; content: string; mapping?: CsvMapping | null }) => post<ImportPreviewDTO>("/banking/import/preview", body),
+  importStatement: (body: {
+    filename: string;
+    content: string;
+    mapping?: CsvMapping | null;
+    finAccountId?: number;
+    account?: { name: string; type: FinAccountType; institution?: string | null; mask?: string | null };
+  }) => post<ImportResultDTO>("/banking/import", body),
+  syncBank: (id: number) => post<{ ok: boolean }>(`/banking/connections/${id}/sync`),
+  updateBank: (id: number, body: { label?: string; status?: "active" | "paused" }) => patch<FinConnectionDTO>(`/banking/connections/${id}`, body),
+  deleteBank: (id: number) => del<{ ok: boolean }>(`/banking/connections/${id}`),
+  updateBankAccount: (id: number, body: { name?: string; type?: FinAccountType; hidden?: boolean; invertAmounts?: boolean }) => patch<{ ok: boolean }>(`/banking/accounts/${id}`, body),
+  deleteBankAccount: (id: number) => del<{ ok: boolean }>(`/banking/accounts/${id}`),
+  updateCharge: (id: number, body: { spendCategory?: string; kind?: string; description?: string; applyToMerchant?: boolean }) => patch<{ charge: ChargeDTO; applied: number }>(`/charges/${id}`, body),
+  categorizeWithAi: () => post<{ applied: number }>("/banking/categorize"),
 };

@@ -12,7 +12,8 @@ Adminak runs on your own server. Your mail is read only, analysed locally by a b
 | --- | --- |
 | **Subscriptions** | Every recurring charge rebuilt from receipts and renewal notices: price, cycle, next renewal, payment method, total spent and price history. It flags price increases, trials about to convert, failed payments, overlapping services ("2 video streaming subscriptions") and annual-plan savings. |
 | **Bills** | Card statements, utilities, phone, internet and insurance, with the amount due, minimum due, due date and autopay status. Payment confirmations mark bills paid. Overdue bills escalate. |
-| **Money** | Transactions from receipts and bank alerts, spending by month and category, top merchants, income, fraud and low-balance alerts, refunds, tax documents and statements. |
+| **Money** | Transactions from receipts, bank alerts **and your bank feeds** (Capital One and other banks via Teller or SimpleFIN, or CSV/OFX statements). Balances, net worth over time, spending by month and category, top merchants, income, fraud and low-balance alerts, refunds, tax documents and statements. |
+| **Banks & cards** | Checking, savings and card balances, card utilization, and every transaction, matched to the receipts in your mail so a purchase is counted once. Card payments and transfers between your own accounts are never counted as spending. Subscriptions that never email a receipt are found from the bank feed. Bank fees and likely double charges raise alerts. |
 | **Career** | A pipeline by company: applied → in review → assessment → interviewing → offer or closed. Recruiter outreach and interview times are included. |
 | **Travel** | Flights, stays, rentals and rides, with confirmation numbers, check-in reminders and itinerary changes. |
 | **Orders** | Shipments, deliveries, delays and returns, with tracking links. |
@@ -52,7 +53,7 @@ npm start                     # http://localhost:8787
 
 When the server starts for the first time, it prints a **one-time setup code**. Open `http://localhost:8787/setup` and enter that code. Then create your owner account and the address your alerts should go to.
 
-Then either connect a mailbox (**Mailboxes → Connect**) or click **Load demo inbox**. The demo loads about 100 realistic sample emails so you can explore every screen first.
+Then either connect a mailbox (**Connections → Add**) or click **Load demo inbox**. The demo loads about 100 realistic sample emails plus a sample Capital One checking, savings and card account, so you can explore every screen first.
 
 During development, run `npm run dev`. It starts the API with reload on port 8787 and the Vite dev server on 5173, which proxies the API.
 
@@ -107,6 +108,9 @@ All configuration is through environment variables (see [`.env.example`](.env.ex
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | Create the owner on first boot instead of using the setup code. |
 | `TRUST_PROXY` | `true` behind Railway, Fly, Render, Nginx or Cloudflare, so client IPs are correct. |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Enable one-click Gmail. |
+| `TELLER_APPLICATION_ID`, `TELLER_ENVIRONMENT` | Enable one-tap bank linking (Capital One and ~5,000 US banks) through [Teller](https://teller.io). Environment: `sandbox`, `development` (real banks, free for up to 100 connections) or `production`. |
+| `TELLER_CERTIFICATE`, `TELLER_PRIVATE_KEY` | The client certificate and key Teller issues to your app (PEM text, PEM with `\n` escapes, or base64 of the PEM). `TELLER_CERTIFICATE_FILE` / `TELLER_PRIVATE_KEY_FILE` take file paths instead. Not needed in `sandbox`. |
+| `SIMPLEFIN_HOSTS` | Hosts a SimpleFIN setup token may point at (default `bridge.simplefin.org,beta-bridge.simplefin.org`). |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | Outgoing email. |
 | `NOTIFY_EMAIL` | Default address for alerts and reports. |
 | `ANTHROPIC_API_KEY`, `AI_MODEL` | Optional Claude features (default model `claude-opus-5-5`). |
@@ -122,7 +126,7 @@ All configuration is through environment variables (see [`.env.example`](.env.ex
 2. Configure the **OAuth consent screen**: External, with your own email as a test user.
 3. Create an **OAuth client ID** of type *Web application*, with this authorized redirect URI:
    `https://<your APP_URL>/api/accounts/google/callback`
-4. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` and restart. Then go to **Mailboxes → Connect → Gmail**.
+4. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` and restart. Then go to **Connections → Add → Gmail**.
 
 On the Google screen you can choose to let Adminak:
 
@@ -137,11 +141,56 @@ Adminak syncs incrementally through the Gmail History API, so only new mail is f
 
 ### iCloud, Outlook, Yahoo, Fastmail, Zoho, Proton Bridge, any IMAP
 
-Go to **Mailboxes → Connect → iCloud · Outlook · IMAP**, pick your provider and paste an **app password**. Each preset includes instructions for creating one. Gmail also works over IMAP with an app password if you'd rather not create a Google Cloud project. **Test** checks the connection and lists your folders before you connect.
+Go to **Connections → Add → iCloud, Outlook, Yahoo, Fastmail, any IMAP**, pick your provider and paste an **app password**. Each preset includes instructions for creating one. Gmail also works over IMAP with an app password if you'd rather not create a Google Cloud project. **Test** checks the connection and lists your folders before you connect.
 
 ### Anything else: the automation inbox
 
 POST emails to `/api/hooks/ingest`, as JSON or as raw `message/rfc822`. For example, a Gmail filter that forwards to a Zapier or Make webhook can feed Adminak from any account.
+
+Connect as many mailboxes as you like. Each one syncs on its own, and every email from every inbox lands in the same subscriptions, bills, spending and timeline.
+
+---
+
+## Connecting your bank (Capital One first)
+
+Everything is read-only, and Adminak never sees a bank password. You can use any of three routes, or mix them:
+
+### 1. Capital One (and ~5,000 US banks), one tap via Teller
+
+Capital One has no personal API keys. [Teller](https://teller.io) is a read-only bank API with a free development tier (up to 100 live connections), so it suits a personal console.
+
+1. Sign up at teller.io and create an application. Copy the **Application ID**.
+2. Download the app's **certificate** and **private key** from the Teller dashboard.
+3. Set `TELLER_APPLICATION_ID`, `TELLER_ENVIRONMENT=development`, `TELLER_CERTIFICATE` and `TELLER_PRIVATE_KEY` (on Railway, paste the base64 of each PEM). Then redeploy.
+4. Go to **Connections → Add → Capital One**. You sign in to Capital One inside Teller Connect's window. Adminak gets a read-only access token, stores it encrypted, and pulls a year of transactions and current balances.
+
+Banks refresh every 6 hours (configurable under **Notifications → Bank & card alerts**). If a link expires, the connection shows **Reconnect** and you get an alert.
+
+### 2. Any bank via SimpleFIN Bridge
+
+[SimpleFIN Bridge](https://beta-bridge.simplefin.org/) costs about $15 a year and links Capital One and most US banks and credit unions. Connect your banks there, create a **setup token**, then paste it under **Connections → Add → Any bank via SimpleFIN**. The token works only once. Adminak exchanges it for read-only access credentials and encrypts them. The token must point at a host in `SIMPLEFIN_HOSTS`.
+
+### 3. Statement files: no setup at all
+
+Download transactions from your bank's website and drop the file under **Connections → Add → Statement file**:
+
+- **Capital One:** sign in, open the account, choose *Download transactions*, then *CSV*. Card and 360 checking/savings formats are both recognised.
+- **OFX / QFX / QBO** downloads from any bank. These are the "Quicken" or "Web Connect" formats.
+- **Chase, Amex, Discover, Citi, Apple Card, Bank of America and Wells Fargo** CSVs.
+- **Any other CSV.** Adminak guesses the columns and shows a preview you can correct.
+
+Re-importing an overlapping file never creates duplicates.
+
+### How bank data is used
+
+- **Merchants are cleaned up.** `SQ *BLUE BOTTLE COFFEE BROOKLYN NY` becomes *Blue Bottle Coffee*. Each transaction is categorised from the vendor directory, the bank's own category and keywords. With AI on, Claude categorises merchants the rules can't place. It only sees the merchant names.
+- **Receipts are matched.** An email receipt or card alert is matched to the bank transaction for the same purchase (same amount, posted a few days later, same merchant). The bank row is what counts, and the receipt lends it its vendor, subscription and bill.
+- **Card payments and transfers are excluded.** A checking-to-card payment, the card's "payment, thank you", moving money to savings and Zelle/Venmo transfers are never spending or income.
+- **Recurring charges become subscriptions.** Charges with no receipt in your mail (a gym, an app billed to the card) are found from their schedule and tracked as subscriptions.
+- **Alerts** cover large transactions, bank fees, likely double charges, low balances and high card utilization.
+- **You can recategorise anything.** Choose *Always for this merchant* to make a rule that applies to past and future transactions. A refresh never overwrites your choice.
+
+Removing a bank deletes its accounts and transactions. Email receipts that were matched to them count on their own again.
 
 ---
 
@@ -177,7 +226,7 @@ Under **Schedule** you set:
 
 ## Automations & calendar
 
-**Mailboxes → Automations** shows your automation token. It's encrypted at rest, and you can reveal, copy or rotate it. Every hook uses `Authorization: Bearer $ADMINAK_TOKEN`:
+**Connections → Automations** shows your automation token. It's encrypted at rest, and you can reveal, copy or rotate it. Every hook uses `Authorization: Bearer $ADMINAK_TOKEN`:
 
 ```bash
 # Trigger a scan now (add ?wait=1 to wait for results)
@@ -217,9 +266,10 @@ Adminak can see your mail, so it's built to be locked down:
 
 - **One owner account.** Passwords are hashed with scrypt. Sessions are server-side with HttpOnly, SameSite cookies. You can review and revoke sessions.
 - **TOTP two-factor sign-in** with one-time recovery codes. You also get emailed when a sign-in comes from a new IP.
-- **Encryption at rest:** mailbox passwords, OAuth tokens, channel secrets and automation tokens use AES-256-GCM.
+- **Encryption at rest:** mailbox passwords, OAuth tokens, bank access tokens, channel secrets and automation tokens use AES-256-GCM.
+- **Bank links are read-only.** Teller calls use mutual TLS with your app's certificate. A SimpleFIN setup token can only point at an allow-listed https host, so a pasted token can't make the server call anything else.
 - **CSRF protection:** a required custom header plus an Origin check.
-- **Strict headers:** a strict Content-Security-Policy, HSTS over HTTPS, and `frame-ancestors 'none'`.
+- **Strict headers:** a strict Content-Security-Policy, HSTS over HTTPS, and `frame-ancestors 'none'`. Teller Connect's script and frame (`teller.io`) are allowed only when Teller is configured.
 - **Rate limiting** on sign-in, hooks and the calendar feed.
 - **CSV exports are escaped** against formula injection.
 - **Untrusted content stays data:** email content is never rendered as HTML in the dashboard. AI prompts treat email text as untrusted data.
@@ -241,7 +291,8 @@ In Docker, run the built CLI instead: `docker compose exec -it adminak node dist
 
 - **Settings → Data:** export everything as JSON, or individual CSVs for subscriptions, transactions, bills, alerts, emails and insights. You can also delete stored email text, or all analysed data.
 - **Settings → General:** choose whether to keep email text at all, and for how long (extracted facts are kept). You can also list senders to never analyse.
-- **Disconnecting a mailbox** deletes its emails and everything derived from them.
+- **Disconnecting a mailbox** deletes its emails and everything derived from them. **Removing a bank** deletes its accounts and transactions.
+- **Exports** include bank accounts and every transaction's source, account and matched receipt.
 
 ---
 

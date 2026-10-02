@@ -4,6 +4,24 @@ import { X } from "lucide-react";
 import { haptic } from "../lib/native";
 import { cn } from "../lib/utils";
 
+// A sheet that closes pops its history entry with history.back(), which lands asynchronously. If
+// another sheet opens in the same render (one sheet handing off to the next), that late popstate
+// must not close the new sheet. This listener is registered before any sheet's, so it can mark
+// our own pops before the sheets see them.
+let pendingBacks = 0;
+let swallowing = false;
+if (typeof window !== "undefined") {
+  window.addEventListener("popstate", () => {
+    if (pendingBacks > 0) {
+      pendingBacks--;
+      swallowing = true;
+      setTimeout(() => {
+        swallowing = false;
+      }, 0);
+    }
+  });
+}
+
 /**
  * Bottom sheet on phones, side drawer on larger screens. Closes on Escape, overlay tap,
  * the browser back gesture (it pushes a history entry while open), and on phones a downward
@@ -111,6 +129,7 @@ export function Sheet({
     window.history.pushState({ adminakSheet: true }, "");
     let closedByPop = false;
     const onPop = () => {
+      if (swallowing) return;
       closedByPop = true;
       onCloseRef.current();
     };
@@ -120,7 +139,10 @@ export function Sheet({
       document.removeEventListener("keydown", onKey);
       window.removeEventListener("popstate", onPop);
       document.body.style.overflow = overflow;
-      if (!closedByPop && window.history.state?.adminakSheet) window.history.back();
+      if (!closedByPop && window.history.state?.adminakSheet) {
+        pendingBacks++;
+        window.history.back();
+      }
       previous?.focus?.();
     };
   }, [open]);

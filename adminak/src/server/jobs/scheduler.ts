@@ -1,5 +1,7 @@
 import type { AppContext } from "../context.js";
 import { generateBriefing, runEnrichmentQueue } from "../intel/ai.js";
+import { categorizeMerchantsWithAi } from "../finance/ai.js";
+import { syncDueBanks } from "../finance/sync.js";
 import { syncAll } from "../ingest/sync.js";
 import { dispatchInstant, markScheduled, retryFailed, scheduledDue, sendDigest } from "../notify/dispatcher.js";
 import { runReminders } from "../services/reminders.js";
@@ -83,6 +85,7 @@ export function startScheduler(ctx: AppContext): Scheduler {
     if (stopped) return;
     const nowMs = ctx.now().getTime();
     await runJob(ctx, "sync", () => syncAll(ctx, "schedule", true));
+    await runJob(ctx, "bank-sync", () => syncDueBanks(ctx));
     if (nowMs - lastReminders > 10 * 60_000) {
       lastReminders = nowMs;
       await runJob(ctx, "reminders", () => runReminders(ctx));
@@ -90,13 +93,14 @@ export function startScheduler(ctx: AppContext): Scheduler {
     await runJob(ctx, "dispatch", () => dispatchInstant(ctx));
     await runJob(ctx, "retry", () => retryFailed(ctx));
     for (const kind of scheduledDue(ctx)) {
-      const hasAccounts = (ctx.db.prepare("SELECT COUNT(*) AS n FROM accounts").get() as { n: number }).n > 0;
+      const hasAccounts = (ctx.db.prepare("SELECT (SELECT COUNT(*) FROM accounts) + (SELECT COUNT(*) FROM fin_connections) AS n").get() as { n: number }).n > 0;
       markScheduled(ctx, kind);
       if (hasAccounts) await runJob(ctx, kind, () => sendDigest(ctx, kind));
     }
     if (ctx.config.ai && nowMs - lastEnrich > 2 * 60_000) {
       lastEnrich = nowMs;
       await runJob(ctx, "ai-enrich", () => runEnrichmentQueue(ctx));
+      await runJob(ctx, "ai-merchants", () => categorizeMerchantsWithAi(ctx));
     }
     await refreshBriefingIfStale(ctx);
     const tz = ctx.settings.get().profile.timezone;

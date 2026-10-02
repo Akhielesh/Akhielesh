@@ -19,6 +19,7 @@ import { refreshBriefingIfStale } from "../src/server/jobs/scheduler.js";
 import { deleteMeta, getMeta } from "../src/server/db/index.js";
 import { totpCode } from "../src/server/security/totp.js";
 import { ensureSetupCode } from "../src/server/services/auth.js";
+import { SPEND_FILTER } from "../src/server/services/dashboard.js";
 import { createHarness, setupOwner } from "./helpers.js";
 
 describe("auth", () => {
@@ -200,7 +201,11 @@ describe("demo workspace end-to-end", async () => {
     expect(money.body.topMerchants.map((m) => m.name)).not.toContain("American Express");
     const september = money.body.monthly.find((m) => m.month === "2026-09")!;
     expect(september.out).toBeGreaterThan(3450);
-    expect(september.out).toBeLessThan(3450 + 2500);
+    // The demo bank pays the same rent the Bilt receipt confirms: one rent, not two.
+    const rents = h.ctx.db
+      .prepare(`SELECT COUNT(*) AS n FROM charges c WHERE ${SPEND_FILTER} AND c.amount = 3450 AND c.occurred_at >= '2026-09-15' AND c.occurred_at < '2026-10-01'`)
+      .get() as { n: number };
+    expect(rents.n).toBe(1);
   });
 
   it("mutes and unmutes a noisy sender from the declutter list", async () => {

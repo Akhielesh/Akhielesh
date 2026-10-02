@@ -37,6 +37,8 @@ export interface AppContext {
   bus: EventEmitter;
   runtime: {
     syncing: Set<number>;
+    /** Bank connections being refreshed. */
+    bankSyncing: Set<number>;
     progress: Map<number, SyncProgress>;
     setupCode: string | null;
     /** Overrides the mail transport (tests, previews). */
@@ -71,7 +73,7 @@ export function createContext(config: AppConfig, opts: ContextOptions = {}): App
     version: VERSION,
     now: opts.now ?? (() => new Date()),
     bus,
-    runtime: { syncing: new Set(), progress: new Map(), setupCode: null, mailOverride: null },
+    runtime: { syncing: new Set(), bankSyncing: new Set(), progress: new Map(), setupCode: null, mailOverride: null },
   };
 }
 
