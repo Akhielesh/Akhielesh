@@ -16,7 +16,8 @@ const hookLimiter = new RateLimiter(120, 60_000);
 const calendarLimiter = new RateLimiter(60, 60_000);
 
 function icsEscape(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+  // Any CR or LF (including a lone \r) would start a new property line in the feed.
+  return value.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r\n|\r|\n/g, "\\n");
 }
 
 function fold(line: string): string {

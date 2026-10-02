@@ -382,7 +382,7 @@ export function dashboardRoutes(ctx: AppContext) {
         dueAt: z.string().max(40),
         autopay: z.boolean().default(false),
         notes: z.string().max(1000).optional(),
-        payUrl: z.url().max(1000).optional().or(z.literal("")),
+        payUrl: z.url({ protocol: /^https?$/ }).max(1000).optional().or(z.literal("")),
       }),
     );
     const now = ctx.now().toISOString();

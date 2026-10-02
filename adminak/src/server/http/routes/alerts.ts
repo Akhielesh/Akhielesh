@@ -103,7 +103,7 @@ const subscriptionPatch = z.object({
   status: z.enum(SUBSCRIPTION_STATUSES).optional(),
   nextRenewalAt: z.string().max(40).nullable().optional(),
   paymentMethod: z.string().max(80).nullable().optional(),
-  manageUrl: z.url().max(1000).nullable().optional().or(z.literal("")),
+  manageUrl: z.url({ protocol: /^https?$/ }).max(1000).nullable().optional().or(z.literal("")),
   kind: z.string().max(40).nullable().optional(),
   notes: z.string().max(2000).nullable().optional(),
   muted: z.boolean().optional(),

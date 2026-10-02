@@ -13,6 +13,7 @@ import { dashboardRoutes } from "./routes/dashboard.js";
 import { messageRoutes } from "./routes/messages.js";
 import { notificationRoutes } from "./routes/notifications.js";
 import { publicRoutes } from "./routes/public.js";
+import { agentGate, agentRoutes } from "./routes/agents.js";
 import { systemRoutes } from "./routes/system.js";
 import { HttpError, RateLimiter, clientIp, type AppEnv } from "./util.js";
 
@@ -46,6 +47,8 @@ export function createApp(ctx: AppContext) {
       );
       c.header("X-Frame-Options", "DENY");
     }
+    // A private console: nothing here should be indexed, trained on or retrieved by AI.
+    c.header("X-Robots-Tag", "noindex, nofollow, noarchive, nosnippet, noai, noimageai");
     if (ctx.config.secureCookies) c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     if (c.req.path.startsWith("/api/")) c.header("Cache-Control", "no-store");
   });
@@ -56,7 +59,11 @@ export function createApp(ctx: AppContext) {
     return c.json({ error: "Something went wrong on the server." }, 500);
   });
 
+  // AI crawlers and automated agents get the check-in page, never the app.
+  app.use("*", agentGate(ctx));
+
   app.route("/", publicRoutes(ctx));
+  app.route("/", agentRoutes(ctx));
 
   // CSRF: state-changing API calls must come from our own pages (custom header + same origin).
   app.use("/api/*", async (c, next) => {

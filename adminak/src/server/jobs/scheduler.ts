@@ -45,6 +45,7 @@ export function runRetention(ctx: AppContext): { bodies: number; sessions: numbe
   db.prepare("DELETE FROM sync_runs WHERE started_at < ?").run(new Date(now.getTime() - 60 * 86400000).toISOString());
   db.prepare("DELETE FROM notifications WHERE created_at < ?").run(new Date(now.getTime() - 180 * 86400000).toISOString());
   db.prepare("DELETE FROM audit_log WHERE at < ?").run(new Date(now.getTime() - 365 * 86400000).toISOString());
+  db.prepare("DELETE FROM agent_visits WHERE created_at < ?").run(new Date(now.getTime() - 90 * 86400000).toISOString());
   db.prepare("DELETE FROM alerts WHERE status = 'done' AND updated_at < ?").run(new Date(now.getTime() - 120 * 86400000).toISOString());
   db.pragma("optimize");
   return { bodies, sessions };

@@ -366,4 +366,35 @@ CREATE TABLE ai_usage (
 );
 `,
   },
+  {
+    version: 2,
+    name: "agent_gate",
+    sql: `
+CREATE TABLE agent_visits (
+  id TEXT PRIMARY KEY,
+  created_at TEXT NOT NULL,
+  path TEXT NOT NULL,
+  agent_name TEXT,
+  agent_kind TEXT,
+  reason TEXT,
+  user_agent TEXT,
+  ip TEXT,
+  canary TEXT NOT NULL,
+  headers TEXT
+);
+CREATE INDEX idx_agent_visits_created ON agent_visits(created_at DESC);
+
+CREATE TABLE agent_checkins (
+  id TEXT PRIMARY KEY,
+  visit_id TEXT,
+  created_at TEXT NOT NULL,
+  agent_name TEXT,
+  user_agent TEXT,
+  ip TEXT,
+  answered INTEGER NOT NULL DEFAULT 0,
+  answers TEXT NOT NULL
+);
+CREATE INDEX idx_agent_checkins_created ON agent_checkins(created_at DESC);
+`,
+  },
 ];

@@ -127,6 +127,10 @@ async function postJson(url: string, body: unknown, headers: Record<string, stri
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text().catch(() => "")).slice(0, 200)}`);
 }
 
+function slackEscape(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function escapeTelegram(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -173,10 +177,13 @@ export async function deliver(ctx: AppContext, row: ChannelRow, message: Channel
       return undefined;
     }
     case "slack": {
+      // Email-derived text must not become Slack markup (<!channel> pings, <url|text> links).
+      const title = slackEscape(short.title);
+      const body = slackEscape(short.body);
       await postJson((config as ChannelConfig["slack"]).url, {
-        text: `${short.title}\n${short.body}`,
+        text: `${title}\n${body}`,
         blocks: [
-          { type: "section", text: { type: "mrkdwn", text: `*${short.title}*\n${short.body}`.slice(0, 2900) } },
+          { type: "section", text: { type: "mrkdwn", text: `*${title}*\n${body}`.slice(0, 2900) } },
           { type: "actions", elements: [{ type: "button", text: { type: "plain_text", text: "Open Adminak" }, url: short.url }] },
         ],
       });
@@ -185,6 +192,7 @@ export async function deliver(ctx: AppContext, row: ChannelRow, message: Channel
     case "discord": {
       await postJson((config as ChannelConfig["discord"]).url, {
         username: "Adminak",
+        allowed_mentions: { parse: [] },
         embeds: [{ title: short.title.slice(0, 250), description: short.body.slice(0, 3500), url: short.url, color: DISCORD_COLOR[short.severity] }],
       });
       return undefined;

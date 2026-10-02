@@ -54,7 +54,14 @@ export const qk = {
   audit: ["audit"] as const,
   automation: ["automation"] as const,
   sessions: ["sessions"] as const,
+  agents: ["agent-visits"] as const,
 };
+
+export interface AgentActivity {
+  visits: { id: string; createdAt: string; path: string; agentName: string; agentKind: string; reason: string; userAgent: string; ip: string; canary: string }[];
+  checkins: { id: string; visitId: string | null; createdAt: string; agentName: string; userAgent: string; answered: number; answers: Record<string, string> }[];
+  byAgent: { agentName: string; agentKind: string; visits: number; lastSeen: string }[];
+}
 
 export interface SubscriptionsResponse {
   items: SubscriptionDTO[];
@@ -142,6 +149,7 @@ export const useSettings = () => useQuery({ queryKey: qk.settings, queryFn: () =
 export const useSystem = () => useQuery({ queryKey: qk.system, queryFn: () => get<SystemStatusDTO & { emailConfigured: boolean }>("/system") });
 export const useAudit = () => useQuery({ queryKey: qk.audit, queryFn: () => get<{ id: number; at: string; action: string; detail: string | null; ip: string | null }[]>("/audit") });
 export const useAutomation = () => useQuery({ queryKey: qk.automation, queryFn: () => get<AutomationResponse>("/automation") });
+export const useAgentActivity = () => useQuery({ queryKey: qk.agents, queryFn: () => get<AgentActivity>("/agent-visits") });
 export const useSessions = () => useQuery({ queryKey: qk.sessions, queryFn: () => get<SessionInfo[]>("/me/sessions") });
 
 /** Invalidates everything derived from mail — after a sync, reclassification or demo load. */

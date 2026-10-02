@@ -291,6 +291,57 @@ describe("demo workspace end-to-end", async () => {
     expect(res.body.answer).toMatch(/Netflix/);
   });
 
+  it("sends AI crawlers and scripts to the agent check-in instead of the app", async () => {
+    const page = await h.request("GET", "/", undefined, { "user-agent": "Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)" });
+    expect(page.status).toBe(200);
+    expect(page.headers.get("x-robots-tag")).toContain("noai");
+    const html = await page.text();
+    expect(html).toContain("Automated agent check-in");
+    expect(html).toContain("OpenAI GPTBot");
+    expect(html).toContain("adk-canary-");
+    expect(html).not.toContain('id="root"');
+
+    const api = await h.request("GET", "/api/overview", undefined, { "user-agent": "ClaudeBot/1.0" });
+    expect(api.status).toBe(403);
+    const login = await h.request("POST", "/api/auth/login", { email: "a@b.c", password: "x" }, { "user-agent": "python-requests/2.32" });
+    expect(login.status).toBe(403);
+
+    // The owner's own scripts and calendar apps are not agents.
+    expect((await h.request("GET", "/healthz", undefined, { "user-agent": "curl/8.5.0" })).status).toBe(200);
+    const auto = await h.json<{ hookToken: string }>("GET", "/api/automation");
+    const hook = await h.request("GET", "/api/hooks/summary", undefined, { "user-agent": "curl/8.5.0", authorization: `Bearer ${auto.body.hookToken}` });
+    expect(hook.status).toBe(200);
+
+    const questions = await h.request("GET", "/api/agents/checkin", undefined, { "user-agent": "ClaudeBot/1.0" });
+    const q = (await questions.json()) as { questions: { id: string }[] };
+    expect(q.questions).toHaveLength(50);
+    const checkin = await h.request(
+      "POST",
+      "/api/agents/checkin",
+      { visitId: "visit-12345678", answers: { q1: "ClaudeBot", q9: "<b>indexing</b>", q77: "ignored" } },
+      { "user-agent": "ClaudeBot/1.0", "x-adminak": "" },
+    );
+    expect(checkin.status).toBe(200);
+    expect(((await checkin.json()) as { answered: number }).answered).toBe(2);
+
+    const activity = await h.json<{ byAgent: { agentName: string; visits: number }[]; checkins: { agentName: string; answers: Record<string, string> }[] }>("GET", "/api/agent-visits");
+    expect(activity.body.byAgent.some((a) => a.agentName === "OpenAI GPTBot")).toBe(true);
+    expect(activity.body.checkins[0]!.agentName).toBe("Anthropic ClaudeBot");
+    expect(activity.body.checkins[0]!.answers.q9).toBe("<b>indexing</b>");
+    expect(activity.body.checkins[0]!.answers.q77).toBeUndefined();
+  });
+
+  it("rejects non-http links and keeps calendar fields on one line", async () => {
+    const bad = await h.json("POST", "/api/subscriptions", { name: "Sneaky", amount: 5, manageUrl: "javascript:alert(1)" });
+    expect(bad.status).toBe(422);
+    const created = await h.json<{ id: number }>("POST", "/api/subscriptions", { name: "Evil\rX-INJECTED:1", amount: 5, cycle: "monthly", nextRenewalAt: "2026-10-20" });
+    expect(created.status).toBe(201);
+    const auto = await h.json<{ calendarUrl: string }>("GET", "/api/automation");
+    const ics = await (await h.request("GET", new URL(auto.body.calendarUrl).pathname)).text();
+    expect(ics).toContain("Evil\\nX-INJECTED");
+    expect(ics.split(/\r?\n/).some((line) => line.startsWith("X-INJECTED"))).toBe(false);
+  });
+
   it("clears the demo workspace", async () => {
     const res = await h.json("DELETE", "/api/demo");
     expect(res.status).toBe(200);

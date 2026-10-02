@@ -5,7 +5,7 @@ import { Activity, Bot, Copy, Database, Download, KeyRound, LogOut, Monitor, Moo
 import { titleCase } from "@shared/format";
 import type { Settings } from "@shared/types";
 import { del, errorMessage, post, patch } from "../lib/api";
-import { useAudit, useAuthState, useSessions, useSettings, useSettingsMutation, useSystem, useInvalidateData } from "../lib/queries";
+import { useAgentActivity, useAudit, useAuthState, useSessions, useSettings, useSettingsMutation, useSystem, useInvalidateData } from "../lib/queries";
 import { useFmt } from "../lib/prefs";
 import { useTheme, type ThemePref } from "../lib/theme";
 import { cn, copyText } from "../lib/utils";
@@ -410,6 +410,68 @@ function SessionsCard() {
   );
 }
 
+function AgentVisitsCard() {
+  const activity = useAgentActivity();
+  const fmt = useFmt();
+  const [open, setOpen] = useState<string | null>(null);
+  const data = activity.data;
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader title="AI visitors" icon={Bot} eyebrow="Crawlers and agents sent to the check-in page" />
+      <div className="mt-3 px-4 pb-4 sm:px-5">
+        <p className="text-[13px] text-muted">
+          AI crawlers, scripts and automated browsers never see this app. They get a check-in page with 50 questions about who they are and what they do with data, plus a synthetic sample record that carries a tracking token. Your automation hooks and calendar feed are not affected.
+        </p>
+        {!data ? (
+          <Skeleton className="mt-3 h-16" />
+        ) : data.byAgent.length === 0 && data.checkins.length === 0 ? (
+          <p className="mt-3 rounded-xl bg-surface-2 px-3 py-2 text-[13px] text-muted">No agents have visited yet.</p>
+        ) : (
+          <>
+            <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line">
+              {data.byAgent.map((a) => (
+                <li key={`${a.agentName}-${a.agentKind}`} className="flex items-center justify-between gap-3 px-3 py-2 text-[13px]">
+                  <span className="min-w-0 truncate font-medium text-ink">
+                    {a.agentName} <span className="font-normal text-muted">· {a.agentKind}</span>
+                  </span>
+                  <span className="tabular shrink-0 text-muted">
+                    {a.visits} visit{a.visits === 1 ? "" : "s"} · {fmt.ago(a.lastSeen)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {data.checkins.length ? (
+              <div className="mt-3 space-y-2">
+                <div className="eyebrow">Check-ins</div>
+                {data.checkins.map((c) => (
+                  <div key={c.id} className="rounded-2xl border border-line">
+                    <button type="button" className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-[13px]" onClick={() => setOpen(open === c.id ? null : c.id)} aria-expanded={open === c.id}>
+                      <span className="font-medium text-ink">{c.agentName}</span>
+                      <span className="text-muted">
+                        {c.answered}/50 answered · {fmt.ago(c.createdAt)}
+                      </span>
+                    </button>
+                    {open === c.id ? (
+                      <dl className="space-y-2 border-t border-line px-3 py-3 text-[13px]">
+                        {Object.entries(c.answers).map(([q, a]) => (
+                          <div key={q}>
+                            <dt className="font-mono text-[11.5px] text-muted">{q}</dt>
+                            <dd className="whitespace-pre-wrap text-ink-2">{a}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 function AuditCard() {
   const audit = useAudit();
   const fmt = useFmt();
@@ -687,6 +749,7 @@ export function SettingsPage() {
           <TwoFactor />
           <PasswordCard />
           <SessionsCard />
+          <AgentVisitsCard />
           <AuditCard />
         </div>
       ) : tab === "ai" ? (

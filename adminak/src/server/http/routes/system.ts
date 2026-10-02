@@ -7,6 +7,7 @@ import { audit, type AppContext } from "../../context.js";
 import { getMeta, setMeta } from "../../db/index.js";
 import { aiUsageToday, askAdminak, generateBriefing } from "../../intel/ai.js";
 import { emailConfigured } from "../../notify/transport.js";
+import { listAgentActivity } from "./agents.js";
 import { SettingsPatchSchema } from "../../services/settings.js";
 import { randomToken, safeEqual } from "../../security/vault.js";
 import { HttpError, readJson, toCsv, type AppEnv } from "../util.js";
@@ -144,6 +145,8 @@ export function systemRoutes(ctx: AppContext) {
     };
     return c.json({ ...status, emailConfigured: emailConfigured(ctx) });
   });
+
+  app.get("/agent-visits", (c) => c.json(listAgentActivity(ctx)));
 
   app.get("/audit", (c) => {
     const rows = ctx.db.prepare("SELECT id, at, action, detail, ip FROM audit_log ORDER BY at DESC, id DESC LIMIT 200").all();

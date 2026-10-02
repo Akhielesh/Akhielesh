@@ -32,6 +32,8 @@ export function createHarness(opts: { now?: Date; env?: Record<string, string> }
         ...(body !== undefined && typeof body !== "string" ? { "content-type": "application/json" } : {}),
         ...(method !== "GET" ? { "x-adminak": "1" } : {}),
         ...(cookie ? { cookie } : {}),
+        // Requests look like a browser unless a test overrides the user agent (see the agent-gate tests).
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
         ...headers,
       },
       body: body === undefined ? undefined : typeof body === "string" ? body : JSON.stringify(body),
