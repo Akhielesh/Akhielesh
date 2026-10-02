@@ -1,3 +1,4 @@
+import { appUrl } from "../lib/base";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -558,7 +559,7 @@ export function SubscriptionsPage() {
         description="Every recurring charge Adminak found in your receipts and renewal notices — with price changes, trials and renewal dates."
         actions={
           <>
-            <a href="/api/export/subscriptions" className="inline-flex h-8 items-center gap-1.5 rounded-[10px] px-3 text-[13px] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink" download>
+            <a href={appUrl("/api/export/subscriptions")} className="inline-flex h-8 items-center gap-1.5 rounded-[10px] px-3 text-[13px] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink" download>
               <Download className="size-4" aria-hidden /> CSV
             </a>
             <Button size="sm" variant="primary" icon={Plus} onClick={() => setAdding(true)}>

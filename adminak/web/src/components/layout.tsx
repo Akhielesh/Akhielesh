@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NavLink, Outlet, useLocation, useNavigate, useNavigationType } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { CornerDownLeft, LogOut, Menu, Monitor, Moon, RefreshCw, Search, Sun } from "lucide-react";
+import { ChartNoAxesColumn, CornerDownLeft, LogOut, Menu, Monitor, Moon, RefreshCw, Search, Sun } from "lucide-react";
 import { timeAgo } from "@shared/format";
 import { actions, useAccounts, useAlertCounts, useInvalidateData, useSubscriptions } from "../lib/queries";
 import { usePrefs } from "../lib/prefs";
@@ -9,6 +9,7 @@ import { useTheme, type ThemePref } from "../lib/theme";
 import { cn } from "../lib/utils";
 import { errorMessage } from "../lib/api";
 import { haptic, useAppBadge, useKeyboardOpen, useScrolled } from "../lib/native";
+import { SITE_DASHBOARD_URL } from "../lib/base";
 import { ALL_NAV, BOTTOM_NAV, NAV, titleFor, type NavItem } from "./nav";
 import { OfflineBar, PullToRefresh } from "./native";
 import { Sheet } from "./sheet";
@@ -134,6 +135,15 @@ function SideNav({ alertCount, onSignOut }: { alertCount: number; onSignOut: () 
           </div>
         ))}
       </nav>
+      {SITE_DASHBOARD_URL ? (
+        <div className="px-3 pb-3">
+          <div className="eyebrow mb-1.5 px-3">Sites</div>
+          <a href={SITE_DASHBOARD_URL} className="group flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] font-medium text-ink-2 transition-colors hover:bg-surface-2/60 hover:text-ink">
+            <ChartNoAxesColumn className="size-[17px] text-muted group-hover:text-ink-2" aria-hidden />
+            <span className="flex-1 truncate">akhielesh.com analytics</span>
+          </a>
+        </div>
+      ) : null}
       <div className="border-t border-line p-3">
         <button type="button" onClick={onSignOut} className="flex h-9 w-full items-center gap-3 rounded-[10px] px-3 text-[13px] text-ink-2 hover:bg-surface-2 hover:text-ink">
           <LogOut className="size-4 text-muted" aria-hidden />
@@ -242,6 +252,15 @@ function MoreSheet({ open, onClose, onSignOut }: { open: boolean; onClose: () =>
           </div>
         ))}
         <div>
+          {SITE_DASHBOARD_URL ? (
+            <>
+              <div className="eyebrow mb-2">Sites</div>
+              <a href={SITE_DASHBOARD_URL} className="mb-5 flex items-center gap-3 rounded-2xl border border-line bg-surface-3 p-3 text-left active:bg-surface-2">
+                <ChartNoAxesColumn className="size-5 shrink-0 text-accent" aria-hidden />
+                <span className="min-w-0 text-[13.5px] leading-tight font-medium text-ink">akhielesh.com analytics</span>
+              </a>
+            </>
+          ) : null}
           <div className="eyebrow mb-2">Appearance</div>
           <div className="grid grid-cols-3 gap-2">
             {(["system", "light", "dark"] as ThemePref[]).map((t) => (

@@ -1,3 +1,4 @@
+import { BASE, appUrl } from "./base";
 import { post } from "./api";
 
 export function pushSupported(): boolean {
@@ -41,6 +42,6 @@ export async function enablePush(publicKey: string): Promise<void> {
 export function registerServiceWorker(): void {
   if (!("serviceWorker" in navigator) || import.meta.env.DEV) return;
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+    navigator.serviceWorker.register(appUrl("/sw.js"), { scope: `${BASE}/` }).catch(() => undefined);
   });
 }

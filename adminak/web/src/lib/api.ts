@@ -1,3 +1,4 @@
+import { appUrl } from "./base";
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -12,7 +13,7 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
   const method = opts.method ?? (opts.body !== undefined ? "POST" : "GET");
   let res: Response;
   try {
-    res = await fetch(`/api${path}`, {
+    res = await fetch(appUrl(`/api${path}`), {
       method,
       credentials: "same-origin",
       headers: {

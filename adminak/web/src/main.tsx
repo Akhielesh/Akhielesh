@@ -5,6 +5,7 @@ import { ApiError } from "./lib/api";
 import { registerServiceWorker } from "./lib/push";
 import { ToastProvider } from "./components/toast";
 import { App } from "./App";
+import { BASE } from "./lib/base";
 import "./styles.css";
 
 const queryClient = new QueryClient({
@@ -21,7 +22,7 @@ registerServiceWorker();
 
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
+    <BrowserRouter basename={BASE || undefined}>
       <ToastProvider>
         <App />
       </ToastProvider>

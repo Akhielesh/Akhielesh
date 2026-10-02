@@ -30,18 +30,22 @@ import { HttpError, RateLimiter, clientIp, readJson, type AppEnv } from "../util
 
 const authLimiter = new RateLimiter(10, 15 * 60_000);
 
+
 export function setSessionCookie(ctx: AppContext, c: Parameters<typeof setCookie>[0], token: string): void {
   setCookie(c, SESSION_COOKIE, token, {
     httpOnly: true,
     secure: ctx.config.secureCookies,
     sameSite: "Lax",
-    path: "/",
+    path: `${ctx.config.basePath}/`,
     maxAge: SESSION_DAYS * 86400,
   });
 }
 
 export function authRoutes(ctx: AppContext) {
   const app = new Hono<AppEnv>();
+  // Account-wide cap on failed sign-ins, whatever IP they claim to come from (behind a proxy the
+  // per-IP key is only as good as the forwarded address). Single-owner console, so one bucket.
+  const failedLogins = new RateLimiter(40, 15 * 60_000);
 
   app.get("/state", (c) => {
     const session = sessionUser(ctx, getCookie(c, SESSION_COOKIE));
@@ -94,12 +98,15 @@ export function authRoutes(ctx: AppContext) {
     const ip = clientIp(c, ctx.config.trustProxy);
     const limit = authLimiter.take(`login:${ip}`);
     if (!limit.ok) throw new HttpError(429, `Too many sign-in attempts. Try again in ${Math.ceil(limit.retryAfter / 60)} minutes.`);
+    const global = failedLogins.blocked("all");
+    if (global) throw new HttpError(429, `Too many failed sign-ins on this console. Try again in ${Math.ceil(global / 60)} minutes.`);
     const body = await readJson(c, z.object({ email: z.string().max(200), password: z.string().max(200), code: z.string().max(20).optional() }));
     const user = findUserByEmail(ctx, body.email);
     // Always run a hash comparison to keep timing uniform.
     const passwordOk = user ? await checkPassword(user, body.password) : (await hashPassword(body.password), false);
     if (!user || !passwordOk) {
       audit(ctx, "auth.login_failed", body.email.slice(0, 120), ip);
+      failedLogins.take("all");
       throw new HttpError(401, "Email or password is incorrect.");
     }
     if (user.totp_enabled) {
@@ -124,7 +131,7 @@ export function authRoutes(ctx: AppContext) {
   app.post("/logout", (c) => {
     const session = sessionUser(ctx, getCookie(c, SESSION_COOKIE));
     if (session) deleteSession(ctx, session.sessionId);
-    deleteCookie(c, SESSION_COOKIE, { path: "/" });
+    deleteCookie(c, SESSION_COOKIE, { path: `${ctx.config.basePath}/` });
     return c.json({ ok: true });
   });
 

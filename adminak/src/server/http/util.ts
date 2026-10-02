@@ -74,6 +74,14 @@ export class RateLimiter {
     return entry.count > this.limit ? { ok: false, retryAfter: Math.ceil((entry.reset - now) / 1000) } : { ok: true, retryAfter: 0 };
   }
 
+  /** Seconds until `key` may try again, or 0 when it is under the limit. Does not count as a hit. */
+  blocked(key: string): number {
+    const entry = this.hits.get(key);
+    const now = Date.now();
+    if (!entry || entry.reset <= now || entry.count < this.limit) return 0;
+    return Math.ceil((entry.reset - now) / 1000);
+  }
+
   reset(key: string): void {
     this.hits.delete(key);
   }

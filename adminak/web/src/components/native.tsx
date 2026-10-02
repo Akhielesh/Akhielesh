@@ -226,7 +226,7 @@ export function InstallCard() {
   if (!offer.kind) return null;
   return (
     <div className="card flex items-start gap-3 p-4" style={{ animation: "toast-in 200ms ease-out" }}>
-      <img src="/icon-192.png" alt="" className="size-11 shrink-0 rounded-[12px]" />
+      <img src="icon-192.png" alt="" className="size-11 shrink-0 rounded-[12px]" />
       <div className="min-w-0 flex-1">
         <div className="text-[14.5px] font-semibold text-ink">Install Adminak</div>
         {offer.kind === "prompt" ? (

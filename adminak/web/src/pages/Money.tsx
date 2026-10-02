@@ -1,3 +1,4 @@
+import { appUrl } from "../lib/base";
 import { useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -644,7 +645,7 @@ function ActivityTab({ onAdd }: { onAdd: () => void }) {
           <strong className="tabular text-good">{formatTotals(totals.in, { currency: fmt.currency })}</strong>
         </span>
         <span className="flex gap-1">
-          <a href="/api/export/charges" download className="inline-flex h-8 items-center gap-1.5 rounded-[10px] px-2.5 font-medium text-ink-2 hover:bg-surface-2">
+          <a href={appUrl("/api/export/charges")} download className="inline-flex h-8 items-center gap-1.5 rounded-[10px] px-2.5 font-medium text-ink-2 hover:bg-surface-2">
             <Download className="size-4" aria-hidden /> CSV
           </a>
           <Button size="sm" icon={Plus} onClick={onAdd}>

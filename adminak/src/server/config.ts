@@ -14,6 +14,7 @@ const EnvSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(8787),
   HOST: z.string().default("0.0.0.0"),
   APP_URL: optionalString,
+  SITE_DASHBOARD_URL: optionalString,
   DATA_DIR: z.string().default("./data"),
   APP_SECRET: optionalString,
   ADMIN_EMAIL: optionalString,
@@ -42,6 +43,10 @@ export interface AppConfig {
   port: number;
   host: string;
   appUrl: string;
+  /** Path prefix the console is served under, from APP_URL's path ("" at the root, "/adminak" on akhielesh.com). */
+  basePath: string;
+  /** Optional link to a sibling dashboard (the akhielesh.com site analytics), shown in the navigation. */
+  siteDashboardUrl?: string;
   secureCookies: boolean;
   dataDir: string;
   appSecret?: string;
@@ -66,11 +71,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   }
   const e = parsed.data;
   const appUrl = (e.APP_URL ?? `http://localhost:${e.PORT}`).replace(/\/+$/, "");
+  const basePath = new URL(appUrl).pathname.replace(/\/+$/, "");
   return {
     env: e.NODE_ENV,
     port: e.PORT,
     host: e.HOST,
     appUrl,
+    basePath,
+    siteDashboardUrl: e.SITE_DASHBOARD_URL,
     secureCookies: appUrl.startsWith("https://"),
     dataDir: e.DATA_DIR,
     appSecret: e.APP_SECRET,

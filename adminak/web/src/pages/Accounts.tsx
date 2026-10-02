@@ -1,3 +1,4 @@
+import { appUrl } from "../lib/base";
 import { useEffect, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -400,7 +401,7 @@ function AddMailboxSheet({ open, onClose, data }: { open: boolean; onClose: () =
   const [busy, setBusy] = useState(false);
   const hasDemo = data.accounts.some((a) => a.provider === "demo");
   const google = () => {
-    window.location.href = `/api/accounts/google/start?labels=${labels ? 1 : 0}&send=${send ? 1 : 0}`;
+    window.location.href = appUrl(`/api/accounts/google/start?labels=${labels ? 1 : 0}&send=${send ? 1 : 0}`);
   };
   const demo = async () => {
     setBusy(true);

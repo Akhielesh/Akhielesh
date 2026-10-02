@@ -1,3 +1,4 @@
+import { appUrl } from "../lib/base";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -587,11 +588,11 @@ function DataTab() {
         <CardHeader title="Export your data" icon={Download} flush />
         <p className="mt-1 text-[13.5px] text-muted">Everything Adminak knows, in open formats.</p>
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <a href="/api/export.json" download className="col-span-2 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-ink sm:col-span-1">
+          <a href={appUrl("/api/export.json")} download className="col-span-2 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-ink sm:col-span-1">
             <Download className="size-4" aria-hidden /> Full JSON
           </a>
           {exports.map((t) => (
-            <a key={t} href={`/api/export/${t}.csv`} download className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-line px-3 text-[13px] font-medium text-ink hover:bg-surface-2">
+            <a key={t} href={appUrl(`/api/export/${t}.csv`)} download className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-line px-3 text-[13px] font-medium text-ink hover:bg-surface-2">
               {titleCase(t)} CSV
             </a>
           ))}

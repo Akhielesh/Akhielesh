@@ -66,7 +66,7 @@ export function agentGate(ctx: AppContext) {
     const agent = detectAgent(c.req.raw);
     const isGatePage = path === "/agents" || path === "/agents/";
     if (!agent && !isGatePage) return next();
-    const origin = new URL(ctx.config.appUrl).origin;
+    const origin = ctx.config.appUrl;
     if (agent && isContentPath(path)) {
       return c.json({ error: "Automated agents may not use this application.", checkin: `${origin}/agents/`, questions: `${origin}/api/agents/checkin` }, 403, AGENT_HEADERS);
     }
@@ -84,7 +84,7 @@ export function agentRoutes(ctx: AppContext) {
   const app = new Hono();
 
   app.get("/api/agents/checkin", (c) => {
-    const origin = new URL(ctx.config.appUrl).origin;
+    const origin = ctx.config.appUrl;
     return c.json(
       {
         policy: AGENT_POLICY,
