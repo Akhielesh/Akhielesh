@@ -1,3 +1,4 @@
+import { appUrl } from "../lib/base";
 import { useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -111,7 +112,7 @@ function BillSheet({ bill, onClose }: { bill: BillDTO | null; onClose: () => voi
           <div className="flex items-center gap-4">
             <VendorMark vendor={bill.vendor} name={bill.name} size="lg" />
             <div>
-              <div className="tabular text-[28px] leading-none font-semibold tracking-tight text-ink">{bill.amountDue !== null ? fmt.money(bill.amountDue, bill.currency) : "—"}</div>
+              <div className="display tabular text-[36px] leading-none text-ink">{bill.amountDue !== null ? fmt.money(bill.amountDue, bill.currency) : "—"}</div>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 <Badge tone={status.tone}>{status.label}</Badge>
                 {bill.dueAt && bill.status !== "paid" ? <DueChip iso={bill.dueAt} /> : null}
@@ -644,7 +645,7 @@ function ActivityTab({ onAdd }: { onAdd: () => void }) {
           <strong className="tabular text-good">{formatTotals(totals.in, { currency: fmt.currency })}</strong>
         </span>
         <span className="flex gap-1">
-          <a href="/api/export/charges" download className="inline-flex h-8 items-center gap-1.5 rounded-[10px] px-2.5 font-medium text-ink-2 hover:bg-surface-2">
+          <a href={appUrl("/api/export/charges")} download className="inline-flex h-8 items-center gap-1.5 rounded-[10px] px-2.5 font-medium text-ink-2 hover:bg-surface-2">
             <Download className="size-4" aria-hidden /> CSV
           </a>
           <Button size="sm" icon={Plus} onClick={onAdd}>

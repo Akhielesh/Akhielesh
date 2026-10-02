@@ -1,3 +1,4 @@
+import { BASE } from "./lib/base";
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -58,7 +59,8 @@ export function App() {
   useEffect(() => {
     const onUnauthorized = () => {
       void qc.invalidateQueries({ queryKey: ["auth"] });
-      if (!window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/setup")) navigate("/login", { replace: true });
+      const here = window.location.pathname.slice(BASE.length);
+      if (!here.startsWith("/login") && !here.startsWith("/setup")) navigate("/login", { replace: true });
     };
     window.addEventListener("adminak:unauthorized", onUnauthorized);
     return () => window.removeEventListener("adminak:unauthorized", onUnauthorized);

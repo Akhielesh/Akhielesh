@@ -170,12 +170,12 @@ export function MessageSheet({ messageId, onClose }: { messageId: number | null;
           {m.analysis.links.length || m.analysis.unsubscribeUrl ? (
             <section className="flex flex-wrap gap-2">
               {m.analysis.links.map((l) => (
-                <ExternalA key={l.url} href={l.url} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-line px-3 text-[13px] font-medium text-ink hover:bg-surface-2">
+                <ExternalA key={l.url} href={l.url} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-[13px] font-medium text-ink hover:bg-surface-2">
                   {l.label} <ExternalLink className="size-3.5 text-muted" aria-hidden />
                 </ExternalA>
               ))}
               {m.analysis.unsubscribeUrl && /^https:/.test(m.analysis.unsubscribeUrl) ? (
-                <ExternalA href={m.analysis.unsubscribeUrl} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-line px-3 text-[13px] font-medium text-ink-2 hover:bg-surface-2">
+                <ExternalA href={m.analysis.unsubscribeUrl} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-[13px] font-medium text-ink-2 hover:bg-surface-2">
                   Unsubscribe <ExternalLink className="size-3.5 text-muted" aria-hidden />
                 </ExternalA>
               ) : null}

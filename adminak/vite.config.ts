@@ -7,6 +7,8 @@ const apiTarget = process.env.ADMINAK_API ?? "http://127.0.0.1:8787";
 
 export default defineConfig({
   root: "web",
+  // Relative asset URLs: the server adds <base href> for wherever the console is mounted (/ or /adminak/).
+  base: "./",
   publicDir: "public",
   plugins: [react(), tailwindcss()],
   resolve: {

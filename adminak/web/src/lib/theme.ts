@@ -1,21 +1,34 @@
 import { useEffect, useState } from "react";
 
-export type ThemePref = "system" | "light" | "dark";
+/**
+ * Themes match akhielesh.com (light · dark · crt) and share its storage key, so a theme picked on
+ * the site carries into the console when it runs at akhielesh.com/adminak. "system" follows the OS.
+ */
+export type ThemePref = "system" | "light" | "dark" | "crt";
+type Theme = Exclude<ThemePref, "system">;
+
+const KEY = "akh.theme";
+const LEGACY_KEY = "adminak-theme";
+const THEME_COLOR: Record<Theme, string> = { light: "#faf8f4", dark: "#1a1714", crt: "#0a1108" };
 
 function read(): ThemePref {
   try {
-    const value = localStorage.getItem("adminak-theme");
-    return value === "light" || value === "dark" ? value : "system";
+    const value = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY);
+    return value === "light" || value === "dark" || value === "crt" ? value : "system";
   } catch {
     return "system";
   }
 }
 
+function resolve(pref: ThemePref): Theme {
+  if (pref !== "system") return pref;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
 function apply(pref: ThemePref) {
-  const dark = pref === "dark" || (pref === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-  const meta = document.querySelectorAll('meta[name="theme-color"]');
-  meta.forEach((m) => m.setAttribute("content", dark ? "#0c0d0f" : "#f6f5f1"));
+  const theme = resolve(pref);
+  document.documentElement.setAttribute("data-theme", theme);
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", THEME_COLOR[theme]));
 }
 
 export function useTheme(): [ThemePref, (pref: ThemePref) => void] {
@@ -32,7 +45,8 @@ export function useTheme(): [ThemePref, (pref: ThemePref) => void] {
     pref,
     (next) => {
       try {
-        localStorage.setItem("adminak-theme", next);
+        if (next === "system") localStorage.removeItem(KEY);
+        else localStorage.setItem(KEY, next);
       } catch {
         // Storage can be unavailable (private mode); the theme still applies for this session.
       }

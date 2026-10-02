@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { getCookie } from "hono/cookie";
 import { serveStatic } from "@hono/node-server/serve-static";
 import type { AppContext } from "../context.js";
@@ -28,7 +28,8 @@ function resolveWebDist(ctx: AppContext): string | null {
   return candidates.find((p) => fs.existsSync(path.join(p, "index.html"))) ?? null;
 }
 
-export function createApp(ctx: AppContext) {
+/** The console with every route at the root; createApp mounts it under the configured base path. */
+function createRootApp(ctx: AppContext) {
   const app = new Hono<AppEnv>();
   const apiLimiter = new RateLimiter(1500, 60_000);
   const appOrigin = new URL(ctx.config.appUrl).origin;
@@ -49,7 +50,9 @@ export function createApp(ctx: AppContext) {
     }
     // A private console: nothing here should be indexed, trained on or retrieved by AI.
     c.header("X-Robots-Tag", "noindex, nofollow, noarchive, nosnippet, noai, noimageai");
-    if (ctx.config.secureCookies) c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    // Under a base path the console shares its host with another site (akhielesh.com), so it
+    // doesn't decide HSTS for that host's subdomains.
+    if (ctx.config.secureCookies) c.header("Strict-Transport-Security", ctx.config.basePath ? "max-age=31536000" : "max-age=31536000; includeSubDomains");
     if (c.req.path.startsWith("/api/")) c.header("Cache-Control", "no-store");
   });
 
@@ -118,6 +121,14 @@ export function createApp(ctx: AppContext) {
   const webDist = resolveWebDist(ctx);
   if (webDist) {
     const relRoot = path.relative(process.cwd(), webDist) || ".";
+    // The shell always goes through withBase (never the raw file), so it carries <base href>.
+    const indexHtml = withBase(fs.readFileSync(path.join(webDist, "index.html"), "utf8"), ctx);
+    const serveIndex = (c: Context<AppEnv>) => {
+      c.header("Cache-Control", "no-cache");
+      return c.html(indexHtml);
+    };
+    app.get("/", serveIndex);
+    app.get("/index.html", serveIndex);
     app.use(
       "/assets/*",
       serveStatic({
@@ -136,11 +147,7 @@ export function createApp(ctx: AppContext) {
         },
       }),
     );
-    const indexHtml = fs.readFileSync(path.join(webDist, "index.html"), "utf8");
-    app.get("*", (c) => {
-      c.header("Cache-Control", "no-cache");
-      return c.html(indexHtml);
-    });
+    app.get("*", serveIndex);
   } else {
     app.get("/", (c) =>
       c.html(
@@ -149,6 +156,38 @@ export function createApp(ctx: AppContext) {
     );
   }
 
+  return app;
+}
+
+function attr(value: string): string {
+  return value.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]!);
+}
+
+/**
+ * The web build uses relative asset URLs; a <base> tag points them (and the app's API calls,
+ * via the adminak-base meta tag) at wherever the console is mounted.
+ */
+function withBase(html: string, ctx: AppContext): string {
+  const base = ctx.config.basePath;
+  const tags = [`<base href="${attr(base)}/">`, `<meta name="adminak-base" content="${attr(base)}">`];
+  if (ctx.config.siteDashboardUrl) tags.push(`<meta name="adminak-site-dashboard" content="${attr(ctx.config.siteDashboardUrl)}">`);
+  return html.replace(/<head>/i, `<head>\n    ${tags.join("\n    ")}`);
+}
+
+/**
+ * The HTTP app. With APP_URL at a sub-path (https://akhielesh.com/adminak) everything is served
+ * under that prefix; /healthz stays at the root for the platform health check.
+ */
+export function createApp(ctx: AppContext) {
+  const root = createRootApp(ctx);
+  const base = ctx.config.basePath;
+  if (!base) return root;
+  const app = new Hono();
+  app.get("/healthz", (c) => root.fetch(c.req.raw));
+  app.get("/", (c) => c.redirect(`${base}/`, 302));
+  app.get(base, (c) => c.redirect(`${base}/`, 301));
+  app.mount(base, root.fetch);
+  app.all("*", (c) => c.text("Not found", 404));
   return app;
 }
 

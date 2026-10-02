@@ -99,7 +99,8 @@ All configuration is through environment variables (see [`.env.example`](.env.ex
 
 | Variable | Purpose |
 | --- | --- |
-| `APP_URL` | Public URL. Used in email links, the OAuth redirect and the CSRF origin check. |
+| `APP_URL` | Public URL. Used in email links, the OAuth redirect and the CSRF origin check. It may include a path (`https://akhielesh.com/adminak`): the whole console is then served under that prefix, and `/healthz` stays at the root. |
+| `SITE_DASHBOARD_URL` | Optional link to a sibling dashboard, shown in the navigation (`/adminak/site/` on akhielesh.com). |
 | `PORT` / `HOST` | Listen address (default `0.0.0.0:8787`). |
 | `DATA_DIR` | Where the database, keys and email outbox live (default `./data`; `/data` in Docker). |
 | `APP_SECRET` | 32+ random characters used to encrypt stored credentials. Auto-generated if unset. |

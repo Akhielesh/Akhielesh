@@ -50,6 +50,49 @@ describe("auth", () => {
     expect((await h.json("GET", "/api/overview")).status).toBe(200);
   });
 
+  it("serves the whole console under APP_URL's path (akhielesh.com/adminak)", async () => {
+    const h = createHarness({ env: { APP_URL: "https://akhielesh.com/adminak" } });
+    // The platform health check stays at the root; the root itself points at the console.
+    expect((await h.request("GET", "/healthz")).status).toBe(200);
+    const root = await h.request("GET", "/");
+    expect(root.status).toBe(302);
+    expect(root.headers.get("location")).toBe("/adminak/");
+    // Nothing else is served outside the prefix.
+    expect((await h.request("GET", "/api/auth/state")).status).toBe(404);
+    const state = await h.json<AuthState>("GET", "/adminak/api/auth/state");
+    expect(state.body.setupRequired).toBe(true);
+    const setup = await h.request(
+      "POST",
+      "/adminak/api/auth/setup",
+      { setupCode: h.ctx.runtime.setupCode, email: "owner@example.com", name: "A", password: "correct horse battery staple 9" },
+      { origin: "https://akhielesh.com", "x-forwarded-host": "akhielesh.com" },
+    );
+    expect(setup.status).toBe(200);
+    // Its own cookie name, scoped to the console's path — akhielesh.com's site login uses adminak_session on /.
+    const cookie = setup.headers.get("set-cookie") ?? "";
+    expect(cookie).toMatch(/^adminak_console=/);
+    expect(cookie).toContain("Path=/adminak/");
+    expect(cookie).not.toContain("includeSubDomains");
+    expect(setup.headers.get("strict-transport-security")).toBe("max-age=31536000");
+    expect((await h.json<AuthState>("GET", "/adminak/api/auth/state")).body.authenticated).toBe(true);
+    // Agents hitting the prefix still get the check-in, with links under the prefix.
+    const agent = await h.request("GET", "/adminak/api/overview", undefined, { "user-agent": "GPTBot/1.2" });
+    expect(agent.status).toBe(403);
+    expect(((await agent.json()) as { checkin: string }).checkin).toBe("https://akhielesh.com/adminak/agents/");
+  });
+
+  it("caps failed sign-ins across all addresses, not just per IP", async () => {
+    const h = createHarness({ env: { TRUST_PROXY: "true" } });
+    await setupOwner(h);
+    await h.json("POST", "/api/auth/logout");
+    const attempt = (i: number, password = "wrong password here") =>
+      h.request("POST", "/api/auth/login", { email: "owner@example.com", password }, { "x-forwarded-for": `203.0.113.${i % 250}` });
+    for (let i = 0; i < 40; i++) expect((await attempt(i)).status).toBe(401);
+    // A rotating attacker is now stopped — and so is a correct password until the window passes.
+    expect((await attempt(41)).status).toBe(429);
+    expect((await attempt(42, "correct horse battery staple 9")).status).toBe(429);
+  });
+
   it("blocks state-changing requests without the CSRF header or from another origin", async () => {
     const h = createHarness();
     await setupOwner(h);

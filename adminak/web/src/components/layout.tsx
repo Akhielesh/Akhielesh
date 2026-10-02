@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NavLink, Outlet, useLocation, useNavigate, useNavigationType } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { CornerDownLeft, LogOut, Menu, Monitor, Moon, RefreshCw, Search, Sun } from "lucide-react";
+import { ChartNoAxesColumn, CornerDownLeft, LogOut, Menu, Monitor, Moon, RefreshCw, Search, SquareTerminal, Sun } from "lucide-react";
 import { timeAgo } from "@shared/format";
 import { actions, useAccounts, useAlertCounts, useInvalidateData, useSubscriptions } from "../lib/queries";
 import { usePrefs } from "../lib/prefs";
@@ -9,19 +9,22 @@ import { useTheme, type ThemePref } from "../lib/theme";
 import { cn } from "../lib/utils";
 import { errorMessage } from "../lib/api";
 import { haptic, useAppBadge, useKeyboardOpen, useScrolled } from "../lib/native";
+import { SITE_DASHBOARD_URL } from "../lib/base";
 import { ALL_NAV, BOTTOM_NAV, NAV, titleFor, type NavItem } from "./nav";
 import { OfflineBar, PullToRefresh } from "./native";
 import { Sheet } from "./sheet";
 import { useToast } from "./toast";
 import { Kbd } from "./ui";
 
+/** The akhielesh.com mark: a warm dot and a lowercase wordmark, plus the section on phones. */
 function Logo({ compact }: { compact?: boolean }) {
   return (
-    <span className="flex items-center gap-2.5 font-semibold tracking-tight text-ink">
-      <span className="relative grid size-8 place-items-center rounded-[10px] bg-gradient-to-br from-[#1c1d22] to-[#0c0d0f] text-[15px] font-bold text-[#f2efe8] ring-1 ring-white/10">
-        A<span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-[#f0b56f]" />
+    <span className="flex items-center gap-2 text-ink">
+      <span className="relative grid size-3 place-items-center" aria-hidden>
+        <span className="absolute size-3 rounded-full bg-accent opacity-25" />
+        <span className="size-2 rounded-full bg-accent" />
       </span>
-      {compact ? null : <span className="text-[16px]">Adminak</span>}
+      {compact ? null : <span className="text-[15.5px] font-semibold tracking-tight">adminak</span>}
     </span>
   );
 }
@@ -81,8 +84,8 @@ export function SyncButton({ compact }: { compact?: boolean }) {
 
 function ThemeToggle() {
   const [pref, setPref] = useTheme();
-  const next: Record<ThemePref, ThemePref> = { system: "dark", dark: "light", light: "system" };
-  const Icon = pref === "dark" ? Moon : pref === "light" ? Sun : Monitor;
+  const next: Record<ThemePref, ThemePref> = { system: "light", light: "dark", dark: "crt", crt: "system" };
+  const Icon = pref === "dark" ? Moon : pref === "light" ? Sun : pref === "crt" ? SquareTerminal : Monitor;
   return (
     <button
       type="button"
@@ -134,6 +137,15 @@ function SideNav({ alertCount, onSignOut }: { alertCount: number; onSignOut: () 
           </div>
         ))}
       </nav>
+      {SITE_DASHBOARD_URL ? (
+        <div className="px-3 pb-3">
+          <div className="eyebrow mb-1.5 px-3">Sites</div>
+          <a href={SITE_DASHBOARD_URL} className="group flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] font-medium text-ink-2 transition-colors hover:bg-surface-2/60 hover:text-ink">
+            <ChartNoAxesColumn className="size-[17px] text-muted group-hover:text-ink-2" aria-hidden />
+            <span className="flex-1 truncate">akhielesh.com analytics</span>
+          </a>
+        </div>
+      ) : null}
       <div className="border-t border-line p-3">
         <button type="button" onClick={onSignOut} className="flex h-9 w-full items-center gap-3 rounded-[10px] px-3 text-[13px] text-ink-2 hover:bg-surface-2 hover:text-ink">
           <LogOut className="size-4 text-muted" aria-hidden />
@@ -150,7 +162,7 @@ function BottomNav({ alertCount, onMore, hidden }: { alertCount: number; onMore:
   const isActive = (to: string) => (to === "/" ? location.pathname === "/" : location.pathname.startsWith(to));
   const inMore = !BOTTOM_NAV.some(isActive);
   const short: Record<string, string> = { "/": "Home", "/alerts": "Alerts", "/subscriptions": "Subs", "/money": "Money" };
-  const tab = "flex h-[60px] w-full flex-col items-center justify-center gap-1 text-[11px] font-medium transition-transform active:scale-[0.94]";
+  const tab = "flex h-[60px] w-full flex-col items-center justify-center gap-1 font-mono text-[10.5px] tracking-[0.02em] transition-transform active:scale-[0.94]";
   const pill = (active: boolean) => cn("relative grid h-8 w-14 place-items-center rounded-full transition-colors duration-200", active && "bg-accent-soft");
   return (
     <nav
@@ -242,9 +254,18 @@ function MoreSheet({ open, onClose, onSignOut }: { open: boolean; onClose: () =>
           </div>
         ))}
         <div>
+          {SITE_DASHBOARD_URL ? (
+            <>
+              <div className="eyebrow mb-2">Sites</div>
+              <a href={SITE_DASHBOARD_URL} className="mb-5 flex items-center gap-3 rounded-2xl border border-line bg-surface-3 p-3 text-left active:bg-surface-2">
+                <ChartNoAxesColumn className="size-5 shrink-0 text-accent" aria-hidden />
+                <span className="min-w-0 text-[13.5px] leading-tight font-medium text-ink">akhielesh.com analytics</span>
+              </a>
+            </>
+          ) : null}
           <div className="eyebrow mb-2">Appearance</div>
-          <div className="grid grid-cols-3 gap-2">
-            {(["system", "light", "dark"] as ThemePref[]).map((t) => (
+          <div className="grid grid-cols-4 gap-2">
+            {(["system", "light", "dark", "crt"] as ThemePref[]).map((t) => (
               <button
                 key={t}
                 type="button"
@@ -435,11 +456,11 @@ export function AppShell() {
         <div className="mx-auto flex h-14 max-w-[1240px] items-center gap-2 px-4 sm:px-6 lg:h-16 lg:px-8">
           <div className="flex min-w-0 flex-1 items-center gap-3 lg:hidden">
             <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Scroll to top">
-              <Logo compact />
+              <Logo />
             </button>
-            {/* The page's large title sits in the content; the bar picks it up once that scrolls away. */}
-            <span className={cn("truncate text-[16px] font-semibold text-ink transition-[opacity,transform] duration-200", titled ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0")} aria-hidden={!titled}>
-              {titleFor(location.pathname)}
+            {/* "adminak / alerts", like the site's header; the section joins once the large title scrolls away. */}
+            <span className={cn("-ml-1 truncate text-[15px] text-muted transition-[opacity,transform] duration-200", titled ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0")} aria-hidden={!titled}>
+              / {titleFor(location.pathname).toLowerCase()}
             </span>
           </div>
           <button
@@ -486,7 +507,7 @@ export function PageHeader({ title, description, actions, eyebrow }: { title: Re
     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
         {eyebrow ? <div className="eyebrow mb-1">{eyebrow}</div> : null}
-        <h1 className="text-[24px] leading-tight font-semibold tracking-tight text-ink sm:text-[28px]">{title}</h1>
+        <h1 className="display text-[38px] leading-[1.02] text-ink sm:text-[46px]">{title}</h1>
         {description ? <p className="mt-1 max-w-2xl text-[14px] text-muted">{description}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}

@@ -7,7 +7,8 @@ import { generateRecoveryCodes, verifyTotp } from "../security/totp.js";
 import { randomToken, sha256 } from "../security/vault.js";
 import { createChannel } from "../notify/channels.js";
 
-export const SESSION_COOKIE = "adminak_session";
+// Not "adminak_session": akhielesh.com's own site-analytics login already uses that name on the same host.
+export const SESSION_COOKIE = "adminak_console";
 export const SESSION_DAYS = 30;
 
 export interface UserRow {

@@ -1,3 +1,4 @@
+import { appUrl } from "../lib/base";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -614,7 +615,7 @@ function TemplatesTab() {
               <iframe
                 key={current.id}
                 title={`${current.name} preview`}
-                src={`/api/templates/${current.id}/preview`}
+                src={appUrl(`/api/templates/${current.id}/preview`)}
                 sandbox=""
                 className={cn("h-[70dvh] rounded-xl border border-line bg-white", mode === "phone" ? "w-[375px] max-w-full" : "w-full")}
               />
