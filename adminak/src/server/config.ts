@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { z } from "zod";
 
 const bool = z
@@ -23,6 +24,13 @@ const EnvSchema = z.object({
   TRUST_PROXY: bool.default(false),
   GOOGLE_CLIENT_ID: optionalString,
   GOOGLE_CLIENT_SECRET: optionalString,
+  TELLER_APPLICATION_ID: optionalString,
+  TELLER_ENVIRONMENT: z.enum(["sandbox", "development", "production"]).default("development"),
+  TELLER_CERTIFICATE: optionalString,
+  TELLER_PRIVATE_KEY: optionalString,
+  TELLER_CERTIFICATE_FILE: optionalString,
+  TELLER_PRIVATE_KEY_FILE: optionalString,
+  SIMPLEFIN_HOSTS: z.string().default("bridge.simplefin.org,beta-bridge.simplefin.org"),
   SMTP_HOST: optionalString,
   SMTP_PORT: z.coerce.number().int().default(465),
   SMTP_SECURE: bool.default(true),
@@ -53,6 +61,10 @@ export interface AppConfig {
   admin?: { email: string; password: string; name: string };
   trustProxy: boolean;
   google?: { clientId: string; clientSecret: string };
+  /** Teller (bank connections, e.g. Capital One): app id plus the mTLS client certificate Teller issues. */
+  teller?: { applicationId: string; environment: "sandbox" | "development" | "production"; certificate: string | null; privateKey: string | null };
+  /** Hosts a SimpleFIN setup token may point at (the token decodes to a URL Adminak calls). */
+  simplefinHosts: string[];
   smtp?: { host: string; port: number; secure: boolean; user?: string; pass?: string; from: string };
   notifyEmail?: string;
   ai?: { apiKey: string; model: string };
@@ -61,6 +73,17 @@ export interface AppConfig {
   logLevel: "debug" | "info" | "warn" | "error";
   disableScheduler: boolean;
   webDist?: string;
+}
+
+/**
+ * A PEM from an env var (raw, with literal \n escapes, or base64 of the PEM) or from a file path.
+ * Railway variables can't hold real newlines reliably, so all three spellings are accepted.
+ */
+function pem(value: string | undefined, file: string | undefined): string | null {
+  if (file) return fs.readFileSync(file, "utf8");
+  if (!value) return null;
+  const text = value.includes("-----BEGIN") ? value : Buffer.from(value, "base64").toString("utf8");
+  return text.replace(/\\n/g, "\n");
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -91,6 +114,17 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       e.GOOGLE_CLIENT_ID && e.GOOGLE_CLIENT_SECRET
         ? { clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET }
         : undefined,
+    teller: e.TELLER_APPLICATION_ID
+      ? {
+          applicationId: e.TELLER_APPLICATION_ID,
+          environment: e.TELLER_ENVIRONMENT,
+          certificate: pem(e.TELLER_CERTIFICATE, e.TELLER_CERTIFICATE_FILE),
+          privateKey: pem(e.TELLER_PRIVATE_KEY, e.TELLER_PRIVATE_KEY_FILE),
+        }
+      : undefined,
+    simplefinHosts: e.SIMPLEFIN_HOSTS.split(",")
+      .map((h) => h.trim().toLowerCase())
+      .filter(Boolean),
     smtp: e.SMTP_HOST
       ? {
           host: e.SMTP_HOST,

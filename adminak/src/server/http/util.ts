@@ -15,11 +15,13 @@ export class HttpError extends Error {
   }
 }
 
-export async function readJson<T extends z.ZodType>(c: Context, schema: T): Promise<z.infer<T>> {
+export async function readJson<T extends z.ZodType>(c: Context, schema: T, maxChars = 1_000_000): Promise<z.infer<T>> {
   let raw: unknown;
   try {
+    const declared = Number(c.req.header("content-length") ?? 0);
+    if (declared > maxChars * 4) throw new HttpError(413, "Request body too large");
     const text = await c.req.text();
-    if (text.length > 1_000_000) throw new HttpError(413, "Request body too large");
+    if (text.length > maxChars) throw new HttpError(413, "Request body too large");
     raw = text ? JSON.parse(text) : {};
   } catch (error) {
     if (error instanceof HttpError) throw error;

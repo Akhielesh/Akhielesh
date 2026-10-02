@@ -310,10 +310,13 @@ export function deleteAccount(ctx: AppContext, accountId: number): void {
 
 export function listSyncRuns(ctx: AppContext, limit = 30): SyncRunDTO[] {
   const rows = ctx.db
-    .prepare("SELECT r.*, a.label AS account_label FROM sync_runs r LEFT JOIN accounts a ON a.id = r.account_id ORDER BY r.started_at DESC LIMIT ?")
+    .prepare(
+      "SELECT r.*, COALESCE(a.label, f.label) AS account_label FROM sync_runs r LEFT JOIN accounts a ON a.id = r.account_id LEFT JOIN fin_connections f ON f.id = r.fin_connection_id ORDER BY r.started_at DESC LIMIT ?",
+    )
     .all(limit) as {
     id: number;
     account_id: number | null;
+    fin_connection_id: number | null;
     account_label: string | null;
     trigger: string;
     status: "running" | "ok" | "error";
@@ -327,6 +330,7 @@ export function listSyncRuns(ctx: AppContext, limit = 30): SyncRunDTO[] {
   return rows.map((r) => ({
     id: r.id,
     accountId: r.account_id,
+    finConnectionId: r.fin_connection_id,
     accountLabel: r.account_label,
     trigger: r.trigger,
     status: r.status,

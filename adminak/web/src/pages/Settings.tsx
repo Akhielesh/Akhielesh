@@ -612,7 +612,7 @@ function DataTab() {
             Delete all analyzed data
           </Button>
         </div>
-        <p className="text-[12px] text-muted">Mailbox connections, rules, channels and settings are kept. To remove a mailbox and its emails, disconnect it in Mailboxes.</p>
+        <p className="text-[12px] text-muted">Mailbox and bank connections, rules, channels and settings are kept (banks re-fetch their transactions on the next refresh). To remove a mailbox or bank entirely, do it in Connections.</p>
       </Card>
     </div>
   );

@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { formatDate, sumByCurrency } from "../../../shared/format.js";
-import type { BillDTO, BillKind, BillStatus, ChargeDTO, DomainDTO, InsightDTO, InsightGroup, MoneyDTO, SpendCategory } from "../../../shared/types.js";
-import { BILL_KINDS, BILL_STATUSES, SPEND_CATEGORIES } from "../../../shared/types.js";
+import type { BillDTO, BillKind, BillStatus, ChargeDTO, DomainDTO, FinAccountType, InsightDTO, InsightGroup, MoneyDTO, SpendCategory } from "../../../shared/types.js";
+import { BILL_KINDS, BILL_STATUSES, CHARGE_KINDS, SPEND_CATEGORIES } from "../../../shared/types.js";
 import { audit, type AppContext } from "../../context.js";
 import { resolveAlerts } from "../../services/alerts.js";
 import { buildOverview, buildTimeline, careerSummary, incomeTotals, insightFromRow, INSIGHT_SELECT, monthlySpend, queryInsights, spendByCategory, topMerchants } from "../../services/dashboard.js";
@@ -12,7 +12,7 @@ import { HttpError, intParam, readJson, type AppEnv } from "../util.js";
 
 const DAY = 86400000;
 
-interface ChargeRow {
+export interface ChargeRow {
   id: number;
   message_id: number | null;
   vendor_id: number | null;
@@ -28,6 +28,17 @@ interface ChargeRow {
   payment_method: string | null;
   occurred_at: string;
   source: string;
+  fin_account_id: number | null;
+  merchant: string | null;
+  superseded_by: number | null;
+  category_source: ChargeDTO["categorySource"];
+  fa_name: string | null;
+  fa_institution: string | null;
+  fa_mask: string | null;
+  fa_type: FinAccountType | null;
+  r_id: number | null;
+  r_message_id: number | null;
+  r_description: string | null;
   v_slug: string | null;
   v_name: string | null;
   v_domain: string | null;
@@ -50,12 +61,22 @@ export function chargeFromRow(r: ChargeRow): ChargeDTO {
     vendor: vendorRefFromRow(r),
     subscriptionId: r.subscription_id,
     billId: r.bill_id,
-    messageId: r.message_id,
-    source: r.source === "manual" ? "manual" : "email",
+    messageId: r.message_id ?? r.r_message_id,
+    source: (["manual", "bank", "import", "card_alert"].includes(r.source) ? r.source : "email") as ChargeDTO["source"],
+    merchant: r.merchant,
+    account: r.fin_account_id && r.fa_name ? { id: r.fin_account_id, name: r.fa_name, institution: r.fa_institution, mask: r.fa_mask, type: r.fa_type ?? "other" } : null,
+    receipt: r.r_id ? { chargeId: r.r_id, messageId: r.r_message_id, description: r.r_description ?? "" } : null,
+    supersededBy: r.superseded_by,
+    categorySource: r.category_source,
   };
 }
 
-export const CHARGE_SELECT = `SELECT c.*, ${VENDOR_COLUMNS} FROM charges c LEFT JOIN vendors v ON v.id = c.vendor_id`;
+/** Charges with vendor, bank account and (for bank rows) the email receipt matched to them. */
+export const CHARGE_SELECT = `SELECT c.*, ${VENDOR_COLUMNS}, fa.name AS fa_name, fa.institution AS fa_institution, fa.mask AS fa_mask, fa.type AS fa_type,
+  (SELECT r.id FROM charges r WHERE r.superseded_by = c.id LIMIT 1) AS r_id,
+  (SELECT r.message_id FROM charges r WHERE r.superseded_by = c.id LIMIT 1) AS r_message_id,
+  (SELECT r.description FROM charges r WHERE r.superseded_by = c.id LIMIT 1) AS r_description
+  FROM charges c LEFT JOIN vendors v ON v.id = c.vendor_id LEFT JOIN fin_accounts fa ON fa.id = c.fin_account_id`;
 
 interface BillRow {
   id: number;
@@ -298,7 +319,7 @@ export function dashboardRoutes(ctx: AppContext) {
       new Date(now.getTime() - 75 * DAY).toISOString(),
     ) as BillRow[]).map((r) => billFromRow(ctx, r));
     const due = bills.filter((b) => b.status === "due" || b.status === "overdue" || b.status === "scheduled");
-    const charges = (ctx.db.prepare(`${CHARGE_SELECT} ORDER BY c.occurred_at DESC LIMIT 150`).all() as ChargeRow[]).map(chargeFromRow);
+    const charges = (ctx.db.prepare(`${CHARGE_SELECT} WHERE c.superseded_by IS NULL ORDER BY c.occurred_at DESC LIMIT 150`).all() as ChargeRow[]).map(chargeFromRow);
     const dto: MoneyDTO = {
       baseCurrency: settings.profile.currency,
       bills,
@@ -323,11 +344,27 @@ export function dashboardRoutes(ctx: AppContext) {
     const q = c.req.query("q")?.trim();
     const category = c.req.query("category");
     const direction = c.req.query("direction");
-    const where: string[] = [];
+    const source = c.req.query("source");
+    const account = Number(c.req.query("account") ?? 0);
+    const kind = c.req.query("kind");
+    // Receipts matched to a bank transaction are shown on that transaction, not as rows of their own.
+    const where: string[] = c.req.query("all") === "1" ? [] : ["c.superseded_by IS NULL"];
     const params: unknown[] = [];
     if (q) {
-      where.push("(c.description LIKE ? OR v.name LIKE ?)");
-      params.push(`%${q.replace(/[%_]/g, "")}%`, `%${q.replace(/[%_]/g, "")}%`);
+      const like = `%${q.replace(/[%_]/g, "")}%`;
+      where.push("(c.description LIKE ? OR v.name LIKE ? OR c.merchant LIKE ? OR c.raw_description LIKE ?)");
+      params.push(like, like, like, like);
+    }
+    if (source === "bank") where.push("c.fin_account_id IS NOT NULL");
+    else if (source === "email") where.push("c.source IN ('email','card_alert')");
+    else if (source === "manual") where.push("c.source = 'manual'");
+    if (Number.isInteger(account) && account > 0) {
+      where.push("c.fin_account_id = ?");
+      params.push(account);
+    }
+    if (kind && (CHARGE_KINDS as readonly string[]).includes(kind)) {
+      where.push("c.kind = ?");
+      params.push(kind);
     }
     if (category && (SPEND_CATEGORIES as readonly string[]).includes(category)) {
       where.push("c.spend_category = ?");
@@ -366,7 +403,12 @@ export function dashboardRoutes(ctx: AppContext) {
   });
 
   app.delete("/charges/:id", (c) => {
-    ctx.db.prepare("DELETE FROM charges WHERE id = ?").run(intParam(c, "id"));
+    const id = intParam(c, "id");
+    const row = ctx.db.prepare("SELECT source FROM charges WHERE id = ?").get(id) as { source: string } | undefined;
+    if (!row) throw new HttpError(404, "Transaction not found");
+    // Feed rows would come straight back on the next refresh; recategorize them instead.
+    if (row.source === "bank") throw new HttpError(409, "Bank transactions come from your bank feed and can't be deleted. Change their category instead.");
+    ctx.db.prepare("DELETE FROM charges WHERE id = ?").run(id);
     return c.json({ ok: true });
   });
 
@@ -461,4 +503,4 @@ export function dashboardRoutes(ctx: AppContext) {
   return app;
 }
 
-export type { BillRow, ChargeRow };
+export type { BillRow };

@@ -37,13 +37,19 @@ export function tokenMatches(ctx: AppContext, kind: TokenKind, candidate: string
 }
 
 const EXPORT_TABLES: Record<string, { sql: string; columns: string[] }> = {
+  bank_accounts: {
+    sql: "SELECT a.id, a.name, a.institution, a.type, a.mask, a.currency, a.balance_current, a.balance_available, a.credit_limit, a.balance_at, c.provider FROM fin_accounts a JOIN fin_connections c ON c.id = a.connection_id ORDER BY a.name",
+    columns: ["id", "name", "institution", "type", "mask", "currency", "balance_current", "balance_available", "credit_limit", "balance_at", "provider"],
+  },
   subscriptions: {
     sql: "SELECT s.id, s.name, s.plan, s.kind, s.amount, s.currency, s.cycle, s.status, s.next_renewal_at, s.last_charged_at, s.trial_ends_at, s.payment_method, s.manage_url, s.source, s.notes FROM subscriptions s ORDER BY s.name",
     columns: ["id", "name", "plan", "kind", "amount", "currency", "cycle", "status", "next_renewal_at", "last_charged_at", "trial_ends_at", "payment_method", "manage_url", "source", "notes"],
   },
   charges: {
-    sql: "SELECT c.id, c.occurred_at, c.description, c.amount, c.currency, c.direction, c.kind, c.spend_category, c.status, c.payment_method, v.name AS vendor FROM charges c LEFT JOIN vendors v ON v.id = c.vendor_id ORDER BY c.occurred_at DESC",
-    columns: ["id", "occurred_at", "description", "amount", "currency", "direction", "kind", "spend_category", "status", "payment_method", "vendor"],
+    sql: `SELECT c.id, c.occurred_at, c.description, c.amount, c.currency, c.direction, c.kind, c.spend_category, c.status, c.payment_method, v.name AS vendor,
+      c.source, c.merchant, c.raw_description, fa.name AS account, fa.mask AS account_mask, c.superseded_by AS matched_bank_transaction
+      FROM charges c LEFT JOIN vendors v ON v.id = c.vendor_id LEFT JOIN fin_accounts fa ON fa.id = c.fin_account_id ORDER BY c.occurred_at DESC`,
+    columns: ["id", "occurred_at", "description", "amount", "currency", "direction", "kind", "spend_category", "status", "payment_method", "vendor", "source", "merchant", "raw_description", "account", "account_mask", "matched_bank_transaction"],
   },
   bills: {
     sql: "SELECT id, name, kind, amount_due, minimum_due, currency, due_at, status, autopay, account_hint, paid_at, paid_amount, notes FROM bills ORDER BY due_at DESC",
@@ -183,10 +189,13 @@ export function systemRoutes(ctx: AppContext) {
       return c.json({ ok: true, changed: n });
     }
     ctx.db.transaction(() => {
-      for (const table of ["alerts", "insights", "charges", "subscription_events", "subscriptions", "bills", "messages", "sync_runs", "notifications", "vendors"]) {
+      for (const table of ["alerts", "insights", "charges", "subscription_events", "subscriptions", "bills", "messages", "sync_runs", "notifications", "merchant_rules", "fin_balance_history", "fin_accounts", "vendors"]) {
         ctx.db.prepare(`DELETE FROM ${table}`).run();
       }
       ctx.db.prepare("UPDATE accounts SET sync_state = '{}', backfill_done = 0, message_count = 0, last_sync_at = NULL").run();
+      // Bank links stay (like mailboxes); their data is fetched again on the next refresh.
+      ctx.db.prepare("DELETE FROM fin_connections WHERE provider IN ('file','demo')").run();
+      ctx.db.prepare("UPDATE fin_connections SET sync_state = '{}', last_sync_at = NULL, last_success_at = NULL").run();
     })();
     audit(ctx, "data.purge", "everything");
     return c.json({ ok: true });

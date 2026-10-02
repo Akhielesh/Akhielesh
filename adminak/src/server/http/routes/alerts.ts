@@ -140,7 +140,7 @@ export function subscriptionRoutes(ctx: AppContext) {
       effective_at: string | null;
       message_id: number | null;
     }[];
-    const charges = (ctx.db.prepare(`${CHARGE_SELECT} WHERE c.subscription_id = ? ORDER BY c.occurred_at DESC LIMIT 100`).all(id) as ChargeRow[]).map(chargeFromRow);
+    const charges = (ctx.db.prepare(`${CHARGE_SELECT} WHERE c.subscription_id = ? AND c.superseded_by IS NULL ORDER BY c.occurred_at DESC LIMIT 100`).all(id) as ChargeRow[]).map(chargeFromRow);
     const messageIds = [...new Set([...events.map((e) => e.message_id), ...charges.map((ch) => ch.messageId)].filter((m): m is number => !!m))];
     const messages = messageIds.length
       ? (ctx.db.prepare(`${messageListSelect} WHERE m.id IN (${messageIds.map(() => "?").join(",")}) ORDER BY m.received_at DESC LIMIT 50`).all(...messageIds) as MessageListRow[]).map(

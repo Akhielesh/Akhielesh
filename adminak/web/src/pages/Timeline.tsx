@@ -48,7 +48,7 @@ function CalendarCard() {
           <Copy className="size-4 text-muted" aria-hidden /> Copy link
         </button>
       </div>
-      <p className="mt-3 text-[12px] text-muted">Google Calendar needs Adminak to be reachable on the internet. Anyone with the link can read the feed — rotate it in Mailboxes → Automations if it leaks.</p>
+      <p className="mt-3 text-[12px] text-muted">Google Calendar needs Adminak to be reachable on the internet. Anyone with the link can read the feed — rotate it in Connections → Automations if it leaks.</p>
     </Card>
   );
 }

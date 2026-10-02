@@ -6,8 +6,8 @@ import {
   HeartPulse,
   House,
   Inbox,
-  Mail,
   Package,
+  Plug,
   Plane,
   Repeat,
   Settings,
@@ -63,7 +63,7 @@ export const NAV: { section: string | null; items: NavItem[] }[] = [
   {
     section: "System",
     items: [
-      { to: "/accounts", label: "Mailboxes", icon: Mail, description: "Connected accounts & scanning" },
+      { to: "/accounts", label: "Connections", icon: Plug, description: "Mailboxes, banks, statements & automations" },
       { to: "/notifications", label: "Notifications", icon: BellRing, description: "Channels, schedule & email templates" },
       { to: "/settings", label: "Settings", icon: Settings, description: "Profile, security, AI and data" },
     ],

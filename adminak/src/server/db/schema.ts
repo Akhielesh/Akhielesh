@@ -397,4 +397,81 @@ CREATE TABLE agent_checkins (
 CREATE INDEX idx_agent_checkins_created ON agent_checkins(created_at DESC);
 `,
   },
+  {
+    version: 3,
+    name: "banking",
+    sql: `
+CREATE TABLE fin_connections (
+  id INTEGER PRIMARY KEY,
+  provider TEXT NOT NULL,
+  label TEXT NOT NULL,
+  institution TEXT,
+  institution_id TEXT,
+  external_id TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  secret_enc TEXT,
+  settings TEXT NOT NULL DEFAULT '{}',
+  sync_state TEXT NOT NULL DEFAULT '{}',
+  last_sync_at TEXT,
+  last_success_at TEXT,
+  last_error TEXT,
+  error_count INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE fin_accounts (
+  id INTEGER PRIMARY KEY,
+  connection_id INTEGER NOT NULL REFERENCES fin_connections(id) ON DELETE CASCADE,
+  external_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  institution TEXT,
+  type TEXT NOT NULL DEFAULT 'other',
+  subtype TEXT,
+  mask TEXT,
+  currency TEXT NOT NULL DEFAULT 'USD',
+  balance_current REAL,
+  balance_available REAL,
+  credit_limit REAL,
+  balance_at TEXT,
+  invert_amounts INTEGER NOT NULL DEFAULT 0,
+  hidden INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(connection_id, external_id)
+);
+
+CREATE TABLE fin_balance_history (
+  fin_account_id INTEGER NOT NULL REFERENCES fin_accounts(id) ON DELETE CASCADE,
+  day TEXT NOT NULL,
+  current REAL,
+  available REAL,
+  PRIMARY KEY (fin_account_id, day)
+);
+
+CREATE TABLE merchant_rules (
+  id INTEGER PRIMARY KEY,
+  merchant_key TEXT NOT NULL UNIQUE,
+  spend_category TEXT,
+  kind TEXT,
+  vendor_id INTEGER REFERENCES vendors(id) ON DELETE SET NULL,
+  source TEXT NOT NULL DEFAULT 'user',
+  created_at TEXT NOT NULL
+);
+
+ALTER TABLE charges ADD COLUMN fin_account_id INTEGER REFERENCES fin_accounts(id) ON DELETE CASCADE;
+ALTER TABLE charges ADD COLUMN external_id TEXT;
+ALTER TABLE charges ADD COLUMN merchant TEXT;
+ALTER TABLE charges ADD COLUMN merchant_key TEXT;
+ALTER TABLE charges ADD COLUMN raw_description TEXT;
+ALTER TABLE charges ADD COLUMN superseded_by INTEGER REFERENCES charges(id) ON DELETE SET NULL;
+ALTER TABLE charges ADD COLUMN category_source TEXT;
+CREATE UNIQUE INDEX idx_charges_external ON charges(fin_account_id, external_id) WHERE external_id IS NOT NULL;
+CREATE INDEX idx_charges_fin_account ON charges(fin_account_id, occurred_at DESC);
+CREATE INDEX idx_charges_superseded ON charges(superseded_by);
+CREATE INDEX idx_charges_merchant ON charges(merchant_key);
+CREATE INDEX idx_charges_amount ON charges(amount, occurred_at);
+
+ALTER TABLE sync_runs ADD COLUMN fin_connection_id INTEGER REFERENCES fin_connections(id) ON DELETE CASCADE;
+`,
+  },
 ];

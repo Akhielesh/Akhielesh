@@ -23,7 +23,7 @@ function supportsEffort(model: string): boolean {
 
 let cachedClient: { key: string; client: Anthropic } | null = null;
 
-function client(ctx: AppContext): Anthropic | null {
+export function client(ctx: AppContext): Anthropic | null {
   if (!ctx.config.ai) return null;
   if (!cachedClient || cachedClient.key !== ctx.config.ai.apiKey) {
     cachedClient = { key: ctx.config.ai.apiKey, client: new Anthropic({ apiKey: ctx.config.ai.apiKey, maxRetries: 2, timeout: 90_000 }) };
@@ -46,7 +46,7 @@ export function aiUsageToday(ctx: AppContext): { calls: number; input: number; o
   return { calls: row?.calls ?? 0, input: row?.input_tokens ?? 0, output: row?.output_tokens ?? 0 };
 }
 
-function recordUsage(ctx: AppContext, usage: { input_tokens: number; output_tokens: number } | undefined): void {
+export function recordUsage(ctx: AppContext, usage: { input_tokens: number; output_tokens: number } | undefined): void {
   ctx.db
     .prepare(
       `INSERT INTO ai_usage(day, calls, input_tokens, output_tokens) VALUES (?, 1, ?, ?)
@@ -55,12 +55,12 @@ function recordUsage(ctx: AppContext, usage: { input_tokens: number; output_toke
     .run(today(ctx), usage?.input_tokens ?? 0, usage?.output_tokens ?? 0);
 }
 
-function withinBudget(ctx: AppContext): boolean {
+export function withinBudget(ctx: AppContext): boolean {
   return aiUsageToday(ctx).calls < ctx.settings.get().ai.dailyLimit;
 }
 
 /** Common request options: model, refusal fallbacks and effort where supported. */
-function requestBase(model: string, effort: "low" | "medium") {
+export function requestBase(model: string, effort: "low" | "medium") {
   const fallback = FALLBACK_MODELS.has(model);
   return {
     model,

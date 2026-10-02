@@ -225,7 +225,8 @@ export function buildTimeline(ctx: AppContext, from: Date, to: Date): TimelineIt
 // payments with no linked bill (bill_id NULL) from turning the whole predicate NULL and vanishing.
 const CC_PAYMENT = `(c.kind = 'bill_payment' AND (COALESCE(c.bill_id IN (SELECT id FROM bills WHERE kind = 'credit_card'), 0)
   OR COALESCE((SELECT kind FROM vendors WHERE id = c.vendor_id) = 'card', 0)))`;
-const SPEND_FILTER = `c.direction = 'out' AND c.status = 'posted' AND c.kind != 'transfer_out' AND NOT ${CC_PAYMENT}`;
+// A receipt matched to a bank transaction (superseded_by) is the same money: only the bank row counts.
+export const SPEND_FILTER = `c.direction = 'out' AND c.status = 'posted' AND c.superseded_by IS NULL AND c.kind NOT IN ('transfer_out','card_payment') AND NOT ${CC_PAYMENT}`;
 
 export function spendTotals(ctx: AppContext, from: Date, to: Date): MoneyTotal[] {
   const rows = ctx.db
@@ -236,7 +237,7 @@ export function spendTotals(ctx: AppContext, from: Date, to: Date): MoneyTotal[]
 
 export function incomeTotals(ctx: AppContext, from: Date, to: Date): MoneyTotal[] {
   const rows = ctx.db
-    .prepare(`SELECT currency, SUM(amount) AS total FROM charges WHERE direction = 'in' AND kind IN ('deposit') AND occurred_at >= ? AND occurred_at < ? GROUP BY currency`)
+    .prepare(`SELECT currency, SUM(amount) AS total FROM charges WHERE direction = 'in' AND kind IN ('deposit') AND superseded_by IS NULL AND occurred_at >= ? AND occurred_at < ? GROUP BY currency`)
     .all(from.toISOString(), to.toISOString()) as { currency: string; total: number }[];
   return rows.map((r) => ({ currency: r.currency, amount: Math.round(r.total * 100) / 100 }));
 }
@@ -251,7 +252,7 @@ export function monthlySpend(ctx: AppContext, months = 12): MonthlySpend[] {
     .prepare(
       `SELECT c.occurred_at, c.amount, c.direction, c.kind, c.spend_category, c.currency, c.status,
          ${CC_PAYMENT} AS cc_payment
-       FROM charges c WHERE c.occurred_at >= ? AND c.currency = ? AND c.status = 'posted'`,
+       FROM charges c WHERE c.occurred_at >= ? AND c.currency = ? AND c.status = 'posted' AND c.superseded_by IS NULL`,
     )
     .all(start.toISOString(), currency) as {
     occurred_at: string;
@@ -277,7 +278,7 @@ export function monthlySpend(ctx: AppContext, months = 12): MonthlySpend[] {
       if (r.kind === "deposit") bucket.in += r.amount;
       continue;
     }
-    if (r.kind === "transfer_out" || r.cc_payment) continue;
+    if (r.kind === "transfer_out" || r.kind === "card_payment" || r.cc_payment) continue;
     bucket.out += r.amount;
     if (r.kind === "subscription") bucket.subscriptions += r.amount;
     bucket.byCategory[r.spend_category] = (bucket.byCategory[r.spend_category] ?? 0) + r.amount;
@@ -303,10 +304,10 @@ export function topMerchants(ctx: AppContext, from: Date, to: Date, limit = 8): 
   const currency = ctx.settings.get().profile.currency;
   const rows = ctx.db
     .prepare(
-      `SELECT COALESCE(v.name, c.description) AS name, c.vendor_id, ${VENDOR_COLUMNS}, SUM(c.amount) AS total, COUNT(*) AS count
+      `SELECT COALESCE(v.name, MAX(c.merchant), c.description) AS name, c.vendor_id, ${VENDOR_COLUMNS}, SUM(c.amount) AS total, COUNT(*) AS count
        FROM charges c LEFT JOIN vendors v ON v.id = c.vendor_id
        WHERE ${SPEND_FILTER} AND c.currency = ? AND c.occurred_at >= ? AND c.occurred_at < ?
-       GROUP BY COALESCE(c.vendor_id, c.description) ORDER BY total DESC LIMIT ?`,
+       GROUP BY COALESCE(CAST(c.vendor_id AS TEXT), c.merchant_key, c.description) ORDER BY total DESC LIMIT ?`,
     )
     .all(currency, from.toISOString(), to.toISOString(), limit) as {
     name: string;

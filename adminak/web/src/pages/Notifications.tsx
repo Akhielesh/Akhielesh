@@ -19,6 +19,7 @@ import {
   Trash2,
   Webhook,
   type LucideIcon,
+  Landmark,
 } from "lucide-react";
 import { ALERT_TYPES, CATEGORY_META } from "@shared/catalog";
 import { SEVERITIES, type ChannelDTO, type ChannelEvents, type ChannelType, type Settings, type Severity } from "@shared/types";
@@ -383,6 +384,42 @@ function ChannelsTab() {
   );
 }
 
+function BankAlertsCard({ settings }: { settings: Settings }) {
+  const mutation = useSettingsMutation();
+  const toast = useToast();
+  const [b, setB] = useState(settings.banking);
+  useEffect(() => setB(settings.banking), [settings.banking]);
+  const dirty = JSON.stringify(b) !== JSON.stringify(settings.banking);
+  const save = () =>
+    mutation.mutate(
+      { banking: { ...b, lowBalanceThreshold: Number(b.lowBalanceThreshold) || 0, utilizationAlertPercent: Math.min(100, Number(b.utilizationAlertPercent) || 0), syncHours: Math.max(1, Math.min(48, Number(b.syncHours) || 6)) } },
+      { onSuccess: () => toast.success("Bank alerts saved"), onError: (e) => toast.error(errorMessage(e)) },
+    );
+  return (
+    <Card className="space-y-4 p-4 sm:p-5">
+      <CardHeader title="Bank & card alerts" icon={Landmark} flush eyebrow="For connected banks and imported statements" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Field label="Low balance below" htmlFor="b-low" hint="Checking & savings. 0 turns it off.">
+          <Input id="b-low" type="number" min={0} value={b.lowBalanceThreshold} onChange={(e) => setB({ ...b, lowBalanceThreshold: Number(e.target.value) })} />
+        </Field>
+        <Field label="Card utilization above (%)" htmlFor="b-util" hint="Share of a card's limit. 0 turns it off.">
+          <Input id="b-util" type="number" min={0} max={100} value={b.utilizationAlertPercent} onChange={(e) => setB({ ...b, utilizationAlertPercent: Number(e.target.value) })} />
+        </Field>
+        <Field label="Refresh banks every (hours)" htmlFor="b-sync" hint="Feeds update a few times a day.">
+          <Input id="b-sync" type="number" min={1} max={48} value={b.syncHours} onChange={(e) => setB({ ...b, syncHours: Number(e.target.value) })} />
+        </Field>
+      </div>
+      <Switch checked={b.feeAlerts} onChange={(v) => setB({ ...b, feeAlerts: v })} label="Bank fees" description="Overdraft, late, foreign-transaction and interest charges — often waived if you ask." />
+      <Switch checked={b.duplicateAlerts} onChange={(v) => setB({ ...b, duplicateAlerts: v })} label="Possible double charges" description="Same merchant, same amount, within two days." />
+      {dirty ? (
+        <Button variant="primary" loading={mutation.isPending} onClick={save}>
+          Save bank alerts
+        </Button>
+      ) : null}
+    </Card>
+  );
+}
+
 function ScheduleTab({ settings }: { settings: Settings }) {
   const mutation = useSettingsMutation();
   const toast = useToast();
@@ -439,6 +476,8 @@ function ScheduleTab({ settings }: { settings: Settings }) {
         </Field>
         <Switch checked={n.loginAlerts} onChange={(v) => setN({ ...n, loginAlerts: v })} label="Email me when someone signs in to Adminak from a new IP" />
       </Card>
+
+      <BankAlertsCard settings={settings} />
 
       <Card className="space-y-4 p-4 sm:p-5">
         <CardHeader title="Briefs & reports" icon={Clock} flush />
