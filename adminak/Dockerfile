@@ -24,8 +24,9 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 RUN mkdir -p /data && chown node:node /data
 USER node
-# SQLite database, generated keys and the email outbox live here — mount a volume.
-VOLUME ["/data"]
+# SQLite database, generated keys and the email outbox live in /data — mount a volume there
+# (docker compose does; on Railway attach a volume at /data). No VOLUME instruction: some
+# platforms, Railway included, reject it.
 EXPOSE 8787
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:' + (process.env.PORT || 8787) + '/healthz').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"

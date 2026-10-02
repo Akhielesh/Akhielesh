@@ -74,16 +74,18 @@ The image runs as a non-root user and keeps all state in `/data`. Compose mounts
 
 ### Railway
 
-1. Create a service from this repository and set **Root Directory** to `adminak`. `railway.json` makes it build from the Dockerfile.
+1. Create a service from this repository and set **Root Directory** to `/adminak`. Railway detects the Dockerfile automatically. Set the health check path to `/healthz`.
 2. Add a **volume** mounted at `/data`. Without one, data resets on every deploy.
-3. Generate a domain and set the variables:
+3. Set the variable `RAILWAY_RUN_UID=0`. Railway mounts volumes as root, and the image otherwise runs as an unprivileged user that can't write to it.
+4. Generate a domain and set the variables:
    - `APP_URL=https://<your-domain>`
    - `TRUST_PROXY=true`
-   - `APP_SECRET`
-   - `ADMIN_EMAIL` and `ADMIN_PASSWORD`
+   - `PORT=8787` (or point the domain at the port you pick)
    - `NOTIFY_EMAIL`
    - `SMTP_*`
-   - optionally `GOOGLE_*` and `ANTHROPIC_API_KEY`
+   - optionally `ADMIN_EMAIL` and `ADMIN_PASSWORD`, `APP_SECRET`, `GOOGLE_*` and `ANTHROPIC_API_KEY`
+
+   Without `ADMIN_*`, open `/setup` and use the one-time setup code from the deploy logs.
 
 Fly.io, Render and any VPS work the same way: Dockerfile, a persistent volume at `/data`, and `TRUST_PROXY=true` behind a proxy.
 
