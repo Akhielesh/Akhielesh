@@ -77,7 +77,7 @@ function GeneralTab({ settings }: { settings: Settings }) {
     <div className="space-y-4">
       <Card className="space-y-4 p-4 sm:p-5">
         <CardHeader title="Profile" icon={UserRound} flush />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Name" htmlFor="p-name">
             <Input id="p-name" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
           </Field>
@@ -113,7 +113,7 @@ function GeneralTab({ settings }: { settings: Settings }) {
 
       <Card className="space-y-4 p-4 sm:p-5">
         <CardHeader title="Scanning" icon={ScanSearch} flush />
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Check for new mail every" htmlFor="s-int" hint="minutes">
             <Input id="s-int" type="number" min={1} max={1440} value={scanning.intervalMinutes} onChange={(e) => setScanning({ ...scanning, intervalMinutes: Number(e.target.value) })} />
           </Field>

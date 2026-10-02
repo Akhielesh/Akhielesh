@@ -199,11 +199,31 @@
   .field::placeholder {
     color: var(--muted);
   }
+  /* Nav bars behave like native chrome: no text selection, no long-press callouts. */
+  .app-chrome {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .page-enter {
+    animation: page-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
   .skeleton {
     background: linear-gradient(90deg, var(--surface-2) 25%, color-mix(in oklab, var(--surface-2) 60%, var(--surface)) 50%, var(--surface-2) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.4s ease-in-out infinite;
     border-radius: 10px;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -255,6 +275,40 @@
   to {
     transform: translateY(0) scale(1);
     opacity: 1;
+  }
+}
+
+/* Phones and tablets: app-like touch behaviour. Unlayered so it wins over utility font sizes. */
+@media (pointer: coarse) {
+  html {
+    /* Our own pull-to-refresh replaces the browser's; no rubber-band reveal behind the app bar. */
+    overscroll-behavior-y: none;
+  }
+  a,
+  button,
+  label,
+  summary,
+  [role="button"],
+  [role="tab"] {
+    touch-action: manipulation;
+  }
+  /* iOS zooms into any field under 16px on focus. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  img,
+  svg {
+    -webkit-user-drag: none;
+  }
+}
+
+/* Installed app: respect the notch and home indicator in landscape too. */
+@media (display-mode: standalone) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
 

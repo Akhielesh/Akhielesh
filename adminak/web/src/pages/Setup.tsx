@@ -67,7 +67,7 @@ export function SetupPage() {
         <Field label="Setup code" htmlFor="code" hint="Printed when the server starts, like ABCD-1234-EF56.">
           <Input id="code" required value={form.setupCode} onChange={set("setupCode")} autoCapitalize="characters" autoComplete="off" placeholder="XXXX-XXXX-XXXX" className="font-mono tracking-wider uppercase" />
         </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Your name" htmlFor="name">
             <Input id="name" required value={form.name} onChange={set("name")} autoComplete="name" />
           </Field>
@@ -86,7 +86,7 @@ export function SetupPage() {
         <Field label="Send alerts to" htmlFor="notify" hint="Your personal email for instant alerts, the daily brief and reports. Defaults to your sign-in email.">
           <Input id="notify" type="email" value={form.notifyEmail} onChange={set("notifyEmail")} placeholder={form.email || "you@example.com"} />
         </Field>
-        <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_120px]">
           <Field label="Time zone" htmlFor="tz">
             <Select id="tz" value={form.timezone} onChange={set("timezone")}>
               {zones.map((z) => (

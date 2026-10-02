@@ -25,6 +25,7 @@ import { useFmt, usePrefs } from "../lib/prefs";
 import { greeting, pct, cn } from "../lib/utils";
 import { savingsFigure } from "../lib/savings";
 import { AlertRow, AlertSheet } from "../components/alerts";
+import { InstallCard } from "../components/native";
 import { CategoryBars, SpendBars } from "../components/charts";
 import { TimelineList } from "../components/timeline";
 import { useToast } from "../components/toast";
@@ -251,7 +252,7 @@ function LifeSnapshot({ overview }: { overview: OverviewDTO }) {
   const fmt = useFmt();
   const c = overview.career;
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <Link to="/career" className="card block p-4 hover:border-line-strong">
         <div className="flex items-center justify-between">
           <span className="eyebrow">Career</span>
@@ -296,7 +297,7 @@ function OverviewSkeleton() {
         ))}
       </div>
       <Skeleton className="h-24" />
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Skeleton className="h-80 lg:col-span-2" />
         <Skeleton className="h-80" />
       </div>
@@ -328,11 +329,11 @@ export function OverviewPage() {
         </div>
       </div>
 
-      {noAccounts ? <ConnectCard /> : null}
+      {noAccounts ? <ConnectCard /> : <InstallCard />}
       <KpiGrid overview={data} />
       {data.kpis.emailsAnalyzed ? <Briefing overview={data} /> : null}
 
-      <div className="grid gap-4 lg:grid-cols-3 lg:gap-5">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
         <div className="space-y-4 lg:col-span-2 lg:space-y-5">
           <Attention alerts={data.attention} onOpen={setOpen} />
           <SpendCard overview={data} />

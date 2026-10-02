@@ -220,7 +220,7 @@ export function DomainPage({ domain }: { domain: Domain }) {
             </Card>
           ) : null}
 
-          <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
             <Card className="overflow-hidden">
               <CardHeader title={config.groups} icon={config.icon} eyebrow={`${groups.length} total`} />
               {domain === "career" ? (

@@ -450,7 +450,7 @@ function OverviewTab({ money, onBill }: { money: MoneyDTO; onBill: (b: BillDTO) 
         <Stat label="Monthly average" value={<span className="tabular">{avg !== null ? fmt.money(avg, cur, { whole: true }) : "—"}</span>} hint={tracked.length ? `over ${tracked.length} month${tracked.length === 1 ? "" : "s"}` : "needs a full month"} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr]">
         <Card className="p-4 sm:p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="text-[15px] font-semibold text-ink">{metric === "out" ? "Spending" : "Money in"} by month</h2>
@@ -477,7 +477,7 @@ function OverviewTab({ money, onBill }: { money: MoneyDTO; onBill: (b: BillDTO) 
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader title="Coming due" icon={CalendarClock} />
           <div className="mt-2 divide-y divide-line">

@@ -658,7 +658,7 @@ export function AccountsPage() {
       ) : null}
 
       {!data ? (
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           <Skeleton className="h-52" />
           <Skeleton className="h-52" />
         </div>
@@ -677,7 +677,7 @@ export function AccountsPage() {
           </EmptyState>
         </Card>
       ) : (
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {data.accounts.map((a) => (
             <AccountCard key={a.id} account={a} onEdit={() => setEditing(a)} />
           ))}

@@ -307,7 +307,7 @@ function RuleEditor({ initial, open, onClose }: { initial: Draft; open: boolean;
               <>
                 <Switch checked={d.alert} onChange={(v) => setD({ ...d, alert: v })} label="Raise an alert" description="Shows in Alerts and notifies you per your notification settings." />
                 {d.alert ? (
-                  <div className="grid gap-3 sm:grid-cols-[160px_1fr]">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-[160px_1fr]">
                     <Field label="Severity" htmlFor="r-sev">
                       <Select id="r-sev" value={d.severity} onChange={(e) => setD({ ...d, severity: e.target.value as Severity })}>
                         {SEVERITIES.map((s) => (
@@ -514,7 +514,7 @@ export function RulesPage() {
 
       <section>
         <h3 className="eyebrow mb-2 px-1">Start from a template</h3>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {PRESETS.map((p) => (
             <button key={p.name} type="button" onClick={() => open({ ...BLANK, ...p.draft })} className="card flex items-start gap-3 p-4 text-left transition-colors hover:border-line-strong">
               <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">

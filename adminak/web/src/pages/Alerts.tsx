@@ -10,6 +10,7 @@ import { useDebounced, useTakeParam } from "../lib/hooks";
 import { useFmt } from "../lib/prefs";
 import { cn } from "../lib/utils";
 import { AlertRow, AlertSheet } from "../components/alerts";
+import { SwipeRow } from "../components/native";
 import { PageHeader } from "../components/layout";
 import { useToast } from "../components/toast";
 import { Button, Card, Chip, ChipRow, EmptyState, Input, SEVERITY_UI, Segmented, Skeleton } from "../components/ui";
@@ -124,6 +125,24 @@ export function AlertsPage() {
     }
   };
 
+  const snoozeTomorrow = async (alert: AlertDTO) => {
+    const until = new Date();
+    until.setDate(until.getDate() + 1);
+    until.setHours(9, 0, 0, 0);
+    try {
+      await actions.updateAlert(alert.id, { status: "snoozed", snoozeUntil: until.toISOString() });
+      refresh();
+      toast.success("Snoozed until tomorrow 9am", {
+        label: "Undo",
+        onClick: () => {
+          void actions.updateAlert(alert.id, { status: alert.status, snoozeUntil: alert.snoozedUntil ?? undefined }).then(refresh);
+        },
+      });
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
+  };
+
   const readAll = async () => {
     setBusy("readAll");
     try {
@@ -145,7 +164,12 @@ export function AlertsPage() {
     <div>
       <PageHeader
         title="Alerts"
-        description="Everything Adminak flagged from your mail: renewals, price changes, bills, security events and more."
+        description={
+          <>
+            Everything Adminak flagged from your mail: renewals, price changes, bills, security events and more.
+            <span className="hidden pointer-coarse:inline"> Swipe a row left to finish it, right to snooze until tomorrow.</span>
+          </>
+        }
         actions={
           <>
             <Button size="sm" variant="ghost" icon={selecting ? X : ListChecks} onClick={() => (setSelecting((s) => !s), setSelected(new Set()))}>
@@ -250,7 +274,13 @@ export function AlertsPage() {
                       </label>
                     ) : null}
                     <div className="min-w-0 flex-1">
-                      <AlertRow alert={a} onOpen={() => (selecting ? toggle(a.id) : setOpen(a))} onDone={selecting ? undefined : () => void markDone(a)} />
+                      <SwipeRow
+                        disabled={selecting || a.status === "done"}
+                        leading={{ label: "Tomorrow", icon: AlarmClock, tone: "info", onCommit: () => void snoozeTomorrow(a) }}
+                        trailing={{ label: "Done", icon: Check, tone: "good", onCommit: () => void markDone(a) }}
+                      >
+                        <AlertRow alert={a} onOpen={() => (selecting ? toggle(a.id) : setOpen(a))} onDone={selecting ? undefined : () => void markDone(a)} />
+                      </SwipeRow>
                     </div>
                   </li>
                 ))}

@@ -349,7 +349,7 @@ function ChannelsTab() {
         </Button>
       </div>
       {data.channels.length ? (
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {data.channels.map((c) => (
             <ChannelCard key={c.id} channel={c} />
           ))}
@@ -573,7 +573,7 @@ function TemplatesTab() {
   return (
     <div className="space-y-3">
       <p className="px-1 text-[13.5px] text-muted">These are the emails Adminak sends you, rendered with sample data. All are mobile-first, work in dark mode, and include a plain-text version.</p>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {templates.isLoading
           ? [0, 1, 2].map((i) => <Skeleton key={i} className="h-28" />)
           : templates.data?.map((t) => (

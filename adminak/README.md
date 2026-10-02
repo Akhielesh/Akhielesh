@@ -26,7 +26,7 @@ You also get:
   - Instant alerts, with quiet hours.
   - A daily brief, plus weekly and monthly reports.
   - Mobile-first HTML email templates that work in dark mode. Every template also has a plain-text version.
-- **A mobile-first dashboard:** an installable PWA with a bottom tab bar, bottom sheets and push notifications. It also has a ⌘K command palette, light and dark themes, and an accessible table view for every chart.
+- **A mobile-first dashboard that behaves like a native app:** an installable PWA with a bottom tab bar, push notifications and an open-alert badge on the app icon. Gestures include pull to refresh, swiping alerts to finish or snooze them, and dragging sheets down to close. Back restores your scroll position. It also has a ⌘K command palette, light and dark themes, and an accessible table view for every chart.
 - **Timeline and calendar:** a private ICS feed for Apple, Google or Outlook Calendar, with reminders.
 - **Rules:** custom alerts, auto-filing and ignore lists, with a "test against my inbox" preview.
 - **Inbox intelligence:** full-text search over every scanned email. Each email shows *why* it was classified, and you can teach Adminak when it's wrong. There's also a declutter view for noisy senders.

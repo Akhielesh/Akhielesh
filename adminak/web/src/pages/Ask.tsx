@@ -78,7 +78,7 @@ export function AskPage() {
 
       <div className="flex-1 space-y-5">
         {turns.length === 0 ? (
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {SUGGESTIONS.map((s) => (
               <button key={s} type="button" onClick={() => void ask(s)} className="card flex items-center gap-3 p-3.5 text-left text-[14px] text-ink-2 transition-colors hover:border-line-strong hover:text-ink">
                 <Sparkles className="size-4 shrink-0 text-accent" aria-hidden />

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { NavLink, Outlet, useLocation, useNavigate, useNavigationType } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { CornerDownLeft, LogOut, Menu, Monitor, Moon, RefreshCw, Search, Sun } from "lucide-react";
 import { timeAgo } from "@shared/format";
@@ -8,7 +8,9 @@ import { usePrefs } from "../lib/prefs";
 import { useTheme, type ThemePref } from "../lib/theme";
 import { cn } from "../lib/utils";
 import { errorMessage } from "../lib/api";
+import { haptic, useAppBadge, useKeyboardOpen, useScrolled } from "../lib/native";
 import { ALL_NAV, BOTTOM_NAV, NAV, titleFor, type NavItem } from "./nav";
+import { OfflineBar, PullToRefresh } from "./native";
 import { Sheet } from "./sheet";
 import { useToast } from "./toast";
 import { Kbd } from "./ui";
@@ -142,22 +144,43 @@ function SideNav({ alertCount, onSignOut }: { alertCount: number; onSignOut: () 
   );
 }
 
-function BottomNav({ alertCount, onMore }: { alertCount: number; onMore: () => void }) {
+function BottomNav({ alertCount, onMore, hidden }: { alertCount: number; onMore: () => void; hidden?: boolean }) {
   const location = useLocation();
   const items = BOTTOM_NAV.map((to) => ALL_NAV.find((n) => n.to === to)!).filter(Boolean);
-  const inMore = !BOTTOM_NAV.some((to) => (to === "/" ? location.pathname === "/" : location.pathname.startsWith(to)));
+  const isActive = (to: string) => (to === "/" ? location.pathname === "/" : location.pathname.startsWith(to));
+  const inMore = !BOTTOM_NAV.some(isActive);
   const short: Record<string, string> = { "/": "Home", "/alerts": "Alerts", "/subscriptions": "Subs", "/money": "Money" };
+  const tab = "flex h-[60px] w-full flex-col items-center justify-center gap-1 text-[11px] font-medium transition-transform active:scale-[0.94]";
+  const pill = (active: boolean) => cn("relative grid h-8 w-14 place-items-center rounded-full transition-colors duration-200", active && "bg-accent-soft");
   return (
-    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/85 backdrop-blur-xl lg:hidden" aria-label="Main">
+    <nav
+      className={cn(
+        "safe-bottom app-chrome fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/85 backdrop-blur-xl transition-transform duration-200 lg:hidden",
+        hidden && "translate-y-full",
+      )}
+      aria-label="Main"
+    >
       <ul className="mx-auto flex max-w-xl">
         {items.map((item) => (
           <li key={item.to} className="flex-1">
-            <NavLink to={item.to} end={item.to === "/"} className={({ isActive }) => cn("flex h-[60px] flex-col items-center justify-center gap-1 text-[11px] font-medium", isActive ? "text-ink" : "text-muted")}>
-              {({ isActive }) => (
+            <NavLink
+              to={item.to}
+              end={item.to === "/"}
+              onClick={(e) => {
+                haptic();
+                // Tapping the tab you're on scrolls back to the top, like a native tab bar.
+                if (isActive(item.to) && location.pathname === item.to && !location.search) {
+                  e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }}
+              className={({ isActive: active }) => cn(tab, active ? "text-ink" : "text-muted")}
+            >
+              {({ isActive: active }) => (
                 <>
-                  <span className="relative">
-                    <item.icon className={cn("size-[22px]", isActive && "text-accent")} aria-hidden />
-                    {item.badge === "alerts" && alertCount ? <AlertBadge count={alertCount} className="absolute -top-2 -right-3 h-[18px] min-w-[18px] text-[10px]" /> : null}
+                  <span className={pill(active)}>
+                    <item.icon className={cn("size-[21px]", active && "text-accent")} strokeWidth={active ? 2.25 : 2} aria-hidden />
+                    {item.badge === "alerts" && alertCount ? <AlertBadge count={alertCount} className="absolute -top-1 right-1 h-[18px] min-w-[18px] text-[10px]" /> : null}
                   </span>
                   {short[item.to] ?? item.label}
                 </>
@@ -166,8 +189,17 @@ function BottomNav({ alertCount, onMore }: { alertCount: number; onMore: () => v
           </li>
         ))}
         <li className="flex-1">
-          <button type="button" onClick={onMore} className={cn("flex h-[60px] w-full flex-col items-center justify-center gap-1 text-[11px] font-medium", inMore ? "text-ink" : "text-muted")}>
-            <Menu className={cn("size-[22px]", inMore && "text-accent")} aria-hidden />
+          <button
+            type="button"
+            onClick={() => {
+              haptic();
+              onMore();
+            }}
+            className={cn(tab, inMore ? "text-ink" : "text-muted")}
+          >
+            <span className={pill(inMore)}>
+              <Menu className={cn("size-[21px]", inMore && "text-accent")} aria-hidden />
+            </span>
             More
           </button>
         </li>
@@ -178,6 +210,7 @@ function BottomNav({ alertCount, onMore }: { alertCount: number; onMore: () => v
 
 function MoreSheet({ open, onClose, onSignOut }: { open: boolean; onClose: () => void; onSignOut: () => void }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [pref, setPref] = useTheme();
   const go = (to: string) => {
     onClose();
@@ -191,7 +224,16 @@ function MoreSheet({ open, onClose, onSignOut }: { open: boolean; onClose: () =>
             {group.section ? <div className="eyebrow mb-2">{group.section}</div> : null}
             <div className="grid grid-cols-2 gap-2">
               {group.items.map((item) => (
-                <button key={item.to} type="button" onClick={() => go(item.to)} className="flex items-center gap-3 rounded-2xl border border-line bg-surface-3 p-3 text-left active:bg-surface-2">
+                <button
+                  key={item.to}
+                  type="button"
+                  onClick={() => go(item.to)}
+                  aria-current={pathname === item.to ? "page" : undefined}
+                  className={cn(
+                    "flex items-center gap-3 rounded-2xl border p-3 text-left transition-transform active:scale-[0.97] active:bg-surface-2",
+                    pathname === item.to ? "border-accent/40 bg-accent-soft" : "border-line bg-surface-3",
+                  )}
+                >
                   <item.icon className="size-5 shrink-0 text-accent" aria-hidden />
                   <span className="min-w-0 text-[13.5px] leading-tight font-medium text-ink">{item.label}</span>
                 </button>
@@ -319,6 +361,12 @@ export function AppShell() {
   const [more, setMore] = useState(false);
   const [palette, setPalette] = useState(false);
   const alertCount = (counts.data?.bySeverity.critical ?? 0) + (counts.data?.bySeverity.high ?? 0);
+  const navType = useNavigationType();
+  const scrolled = useScrolled(8);
+  const titled = useScrolled(52);
+  const keyboard = useKeyboardOpen();
+  const accounts = useAccounts();
+  useAppBadge(counts.data?.new ?? 0);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -331,9 +379,39 @@ export function AppShell() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Back/forward returns to where you were on that screen; anything new starts at the top.
+  const positions = useRef(new Map<string, number>());
+  const currentKey = useRef(location.key);
   useEffect(() => {
+    if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
+    const onScroll = () => positions.current.set(currentKey.current, window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  // Layout effect: re-key before the browser clamps the scroll for the new (shorter) page, so that
+  // scroll event is not recorded against the screen we just left.
+  useLayoutEffect(() => {
+    currentKey.current = location.key;
+    const saved = navType === "POP" ? positions.current.get(location.key) : undefined;
     window.scrollTo({ top: 0 });
-  }, [location.pathname]);
+    if (!saved) return;
+    let tries = 0;
+    let frame = 0;
+    const restore = () => {
+      window.scrollTo({ top: saved });
+      // Content (lazy chunks, cached queries) may still be filling in; retry briefly.
+      if (Math.abs(window.scrollY - saved) > 2 && tries++ < 20) frame = requestAnimationFrame(restore);
+    };
+    frame = requestAnimationFrame(restore);
+    return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, location.key]);
+
+  const refresh = async () => {
+    const list = accounts.data?.accounts ?? [];
+    if (list.length && !list.some((a) => a.syncing)) void actions.syncAll().then(() => accounts.refetch()).catch(() => undefined);
+    await qc.refetchQueries({ type: "active" });
+  };
 
   const signOut = async () => {
     try {
@@ -348,11 +426,21 @@ export function AppShell() {
   return (
     <div className="min-h-dvh">
       <SideNav alertCount={alertCount} onSignOut={signOut} />
-      <header className="safe-top sticky top-0 z-30 border-b border-line bg-bg/80 backdrop-blur-xl lg:ml-[248px]">
+      <header
+        className={cn(
+          "safe-top app-chrome sticky top-0 z-30 border-b backdrop-blur-xl transition-[border-color,background-color] duration-200 lg:ml-[248px] lg:border-line lg:bg-bg/80",
+          scrolled ? "border-line bg-bg/80" : "border-transparent bg-bg/0",
+        )}
+      >
         <div className="mx-auto flex h-14 max-w-[1240px] items-center gap-2 px-4 sm:px-6 lg:h-16 lg:px-8">
           <div className="flex min-w-0 flex-1 items-center gap-3 lg:hidden">
-            <Logo compact />
-            <span className="truncate text-[16px] font-semibold text-ink">{titleFor(location.pathname)}</span>
+            <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Scroll to top">
+              <Logo compact />
+            </button>
+            {/* The page's large title sits in the content; the bar picks it up once that scrolls away. */}
+            <span className={cn("truncate text-[16px] font-semibold text-ink transition-[opacity,transform] duration-200", titled ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0")} aria-hidden={!titled}>
+              {titleFor(location.pathname)}
+            </span>
           </div>
           <button
             type="button"
@@ -380,11 +468,13 @@ export function AppShell() {
         </div>
       </header>
       <main className="lg:ml-[248px]">
-        <div className="mx-auto max-w-[1240px] px-4 pt-4 pb-[calc(92px+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pt-6 lg:pb-12">
+        <div key={location.pathname} className="page-enter mx-auto max-w-[1240px] px-4 pt-2 pb-[calc(92px+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pt-6 lg:pb-12">
           <Outlet />
         </div>
       </main>
-      <BottomNav alertCount={alertCount} onMore={() => setMore(true)} />
+      <PullToRefresh onRefresh={refresh} />
+      <OfflineBar />
+      <BottomNav alertCount={alertCount} onMore={() => setMore(true)} hidden={keyboard} />
       <MoreSheet open={more} onClose={() => setMore(false)} onSignOut={signOut} />
       <CommandPalette open={palette} onClose={() => setPalette(false)} />
     </div>
