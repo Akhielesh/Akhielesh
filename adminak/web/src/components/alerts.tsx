@@ -145,7 +145,7 @@ export function AlertSheet({ alert, open, onClose }: { alert: AlertDTO | null; o
             {amountFact ? (
               <div className="rounded-2xl bg-surface-2 p-3.5">
                 <div className="eyebrow">{amountFact.label}</div>
-                <div className="tabular mt-1 text-[22px] font-semibold text-ink">{amountFact.value}</div>
+                <div className="display tabular mt-1 text-[30px] leading-none text-ink">{amountFact.value}</div>
               </div>
             ) : null}
             {alert.dueAt ? (

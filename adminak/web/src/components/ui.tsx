@@ -15,11 +15,12 @@ const variantClass: Record<ButtonVariant, string> = {
   outline: "border border-line-strong text-ink hover:bg-surface-2",
 };
 
+// Pills, like the buttons on akhielesh.com.
 const sizeClass: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-[13px] gap-1.5 rounded-[10px]",
-  md: "h-10 px-4 text-sm gap-2 rounded-xl",
-  lg: "h-12 px-5 text-[15px] gap-2 rounded-xl",
-  icon: "h-10 w-10 rounded-xl",
+  sm: "h-8 px-3.5 text-[13px] gap-1.5 rounded-full",
+  md: "h-10 px-5 text-sm gap-2 rounded-full",
+  lg: "h-12 px-6 text-[15px] gap-2 rounded-full",
+  icon: "h-10 w-10 rounded-full",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -197,7 +198,7 @@ export function Switch({ checked, onChange, label, disabled, description }: { ch
 
 export function Segmented<T extends string>({ value, onChange, options, className, size = "md" }: { value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode; count?: number }[]; className?: string; size?: "sm" | "md" }) {
   return (
-    <div role="tablist" className={cn("inline-flex rounded-xl border border-line bg-surface-2 p-1", className)}>
+    <div role="tablist" className={cn("inline-flex rounded-full border border-line bg-surface-2 p-1", className)}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -206,7 +207,7 @@ export function Segmented<T extends string>({ value, onChange, options, classNam
           aria-selected={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "inline-flex flex-1 items-center justify-center gap-1.5 rounded-[9px] font-medium whitespace-nowrap transition-colors",
+            "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full font-medium whitespace-nowrap transition-colors",
             size === "sm" ? "h-7 px-2.5 text-[12.5px]" : "h-8 px-3 text-[13px]",
             value === o.value ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink",
           )}
@@ -243,7 +244,7 @@ export function Stat({
         <span className="eyebrow truncate">{label}</span>
         {Icon ? <Icon className="size-4 shrink-0 text-muted" aria-hidden /> : null}
       </div>
-      <div className="mt-2 truncate text-[22px] leading-tight font-semibold tracking-tight text-ink sm:text-[26px]">{value}</div>
+      <div className="display mt-2 truncate text-[30px] leading-none text-ink sm:text-[34px]">{value}</div>
       {hint ? (
         <div className={cn("mt-1 text-[12.5px]", tone === "good" ? "text-good" : tone === "bad" ? "text-crit" : tone === "warn" ? "text-med" : "text-muted")}>{hint}</div>
       ) : null}

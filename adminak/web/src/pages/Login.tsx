@@ -21,7 +21,7 @@ export function AuthFrame({ children, title, subtitle }: { children: React.React
           </div>
         </div>
         <div className="card p-6 sm:p-7">
-          <h1 className="text-[22px] font-semibold tracking-tight text-ink">{title}</h1>
+          <h1 className="display text-[34px] leading-tight text-ink">{title}</h1>
           <p className="mt-1 text-sm text-muted">{subtitle}</p>
           <div className="mt-6">{children}</div>
         </div>

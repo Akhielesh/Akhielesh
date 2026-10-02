@@ -2,7 +2,7 @@ import { appUrl } from "../lib/base";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Activity, Bot, Copy, Database, Download, KeyRound, LogOut, Monitor, Moon, ScanSearch, ShieldCheck, Smartphone, Sun, Trash2, UserRound } from "lucide-react";
+import { Activity, Bot, Copy, Database, Download, KeyRound, LogOut, Monitor, Moon, ScanSearch, ShieldCheck, Smartphone, SquareTerminal, Sun, Trash2, UserRound } from "lucide-react";
 import { titleCase } from "@shared/format";
 import type { Settings } from "@shared/types";
 import { del, errorMessage, post, patch } from "../lib/api";
@@ -151,12 +151,14 @@ function GeneralTab({ settings }: { settings: Settings }) {
 
       <Card className="p-4 sm:p-5">
         <CardHeader title="Appearance" icon={Sun} flush />
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <p className="mt-1 text-[13px] text-muted">Shared with akhielesh.com — pick a theme on either and both follow.</p>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {(
             [
               ["system", "System", Monitor],
               ["light", "Light", Sun],
               ["dark", "Dark", Moon],
+              ["crt", "CRT", SquareTerminal],
             ] as [ThemePref, string, typeof Sun][]
           ).map(([value, label, Icon]) => (
             <button
@@ -164,7 +166,7 @@ function GeneralTab({ settings }: { settings: Settings }) {
               type="button"
               onClick={() => setTheme(value)}
               aria-pressed={theme === value}
-              className={cn("flex h-11 items-center justify-center gap-2 rounded-xl border text-[13.5px] font-medium", theme === value ? "border-transparent bg-primary text-primary-ink" : "border-line text-ink-2 hover:bg-surface-2")}
+              className={cn("flex h-11 items-center justify-center gap-2 rounded-full border text-[13.5px] font-medium", theme === value ? "border-transparent bg-primary text-primary-ink" : "border-line text-ink-2 hover:bg-surface-2")}
             >
               <Icon className="size-4" aria-hidden /> {label}
             </button>
@@ -588,11 +590,11 @@ function DataTab() {
         <CardHeader title="Export your data" icon={Download} flush />
         <p className="mt-1 text-[13.5px] text-muted">Everything Adminak knows, in open formats.</p>
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <a href={appUrl("/api/export.json")} download className="col-span-2 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-ink sm:col-span-1">
+          <a href={appUrl("/api/export.json")} download className="col-span-2 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-ink sm:col-span-1">
             <Download className="size-4" aria-hidden /> Full JSON
           </a>
           {exports.map((t) => (
-            <a key={t} href={appUrl(`/api/export/${t}.csv`)} download className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-line px-3 text-[13px] font-medium text-ink hover:bg-surface-2">
+            <a key={t} href={appUrl(`/api/export/${t}.csv`)} download className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-line px-3 text-[13px] font-medium text-ink hover:bg-surface-2">
               {titleCase(t)} CSV
             </a>
           ))}

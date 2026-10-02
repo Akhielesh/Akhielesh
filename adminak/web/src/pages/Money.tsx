@@ -112,7 +112,7 @@ function BillSheet({ bill, onClose }: { bill: BillDTO | null; onClose: () => voi
           <div className="flex items-center gap-4">
             <VendorMark vendor={bill.vendor} name={bill.name} size="lg" />
             <div>
-              <div className="tabular text-[28px] leading-none font-semibold tracking-tight text-ink">{bill.amountDue !== null ? fmt.money(bill.amountDue, bill.currency) : "—"}</div>
+              <div className="display tabular text-[36px] leading-none text-ink">{bill.amountDue !== null ? fmt.money(bill.amountDue, bill.currency) : "—"}</div>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 <Badge tone={status.tone}>{status.label}</Badge>
                 {bill.dueAt && bill.status !== "paid" ? <DueChip iso={bill.dueAt} /> : null}

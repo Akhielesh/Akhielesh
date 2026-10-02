@@ -38,13 +38,13 @@ function CalendarCard() {
         </div>
       </div>
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
-        <a href={data.webcalUrl} className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-ink">
+        <a href={data.webcalUrl} className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-ink">
           <CalendarClock className="size-4" aria-hidden /> Apple / Outlook
         </a>
-        <ExternalA href={google} className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line px-4 text-sm font-medium text-ink hover:bg-surface-2">
+        <ExternalA href={google} className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-line px-4 text-sm font-medium text-ink hover:bg-surface-2">
           Google Calendar <ExternalLink className="size-4 text-muted" aria-hidden />
         </ExternalA>
-        <button type="button" onClick={() => void copy()} className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line px-4 text-sm font-medium text-ink hover:bg-surface-2">
+        <button type="button" onClick={() => void copy()} className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-line px-4 text-sm font-medium text-ink hover:bg-surface-2">
           <Copy className="size-4 text-muted" aria-hidden /> Copy link
         </button>
       </div>

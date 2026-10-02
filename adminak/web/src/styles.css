@@ -2,79 +2,122 @@
 @source "./";
 @source not "../../src/server";
 
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="crt"], [data-theme="crt"] *));
 
+/* akhielesh.com's design language: Swiss/editorial paper + ink, warm accent, serif display,
+   monospace labels. Same oklch palette and theme names (light · dark · crt) as the site. */
 :root {
   color-scheme: light;
-  --bg: #f6f5f1;
-  --surface: #ffffff;
-  --surface-2: #f2f1ec;
-  --surface-3: #fbfaf8;
-  --border: rgba(11, 11, 11, 0.09);
-  --border-strong: rgba(11, 11, 11, 0.17);
-  --text: #121316;
-  --text-2: #4b4a46;
-  --muted: #7d7b74;
-  --accent: #c26a16;
-  --accent-soft: rgba(240, 181, 111, 0.18);
-  --accent-ink: #ffffff;
-  --primary: #15161a;
-  --primary-ink: #ffffff;
-  --ring: #2a78d6;
-  --crit: #c73434;
-  --high: #c1581f;
-  --med: #9a6d00;
-  --low: #1f67bd;
-  --good: #0b7a0b;
-  --crit-soft: rgba(208, 59, 59, 0.1);
-  --high-soft: rgba(236, 131, 90, 0.14);
-  --med-soft: rgba(250, 178, 25, 0.16);
-  --low-soft: rgba(42, 120, 214, 0.1);
-  --good-soft: rgba(12, 163, 12, 0.1);
-  --series: #2a78d6;
-  --series-soft: rgba(42, 120, 214, 0.16);
-  --grid: #e7e5df;
-  --shadow: 0 1px 2px rgba(17, 17, 17, 0.04), 0 8px 24px -12px rgba(17, 17, 17, 0.12);
-  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237d7b74' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --bg: oklch(98.2% 0.005 70);
+  --surface: oklch(98.9% 0.004 70);
+  --surface-2: oklch(95.6% 0.007 70);
+  --surface-3: oklch(96.8% 0.006 70);
+  --border: oklch(86% 0.005 65);
+  --border-strong: oklch(78% 0.006 65);
+  --text: oklch(18% 0.012 65);
+  --text-2: oklch(30% 0.012 65);
+  --muted: oklch(48% 0.01 65);
+  --accent: oklch(58% 0.14 48);
+  --accent-soft: oklch(64% 0.14 48 / 0.13);
+  --accent-ink: oklch(98.2% 0.005 70);
+  --primary: oklch(18% 0.012 65);
+  --primary-ink: oklch(98.2% 0.005 70);
+  --ring: oklch(60% 0.1 230);
+  --crit: oklch(55% 0.19 25);
+  --high: oklch(58% 0.15 45);
+  --med: oklch(58% 0.12 80);
+  --low: oklch(52% 0.1 230);
+  --good: oklch(52% 0.13 145);
+  --crit-soft: oklch(60% 0.18 25 / 0.11);
+  --high-soft: oklch(64% 0.14 48 / 0.12);
+  --med-soft: oklch(75% 0.13 85 / 0.16);
+  --low-soft: oklch(60% 0.1 230 / 0.11);
+  --good-soft: oklch(62% 0.13 145 / 0.11);
+  --series: oklch(58% 0.14 48);
+  --series-soft: oklch(64% 0.14 48 / 0.16);
+  --grid: oklch(90% 0.005 65);
+  --shadow: 0 1px 0 oklch(18% 0.012 65 / 0.02);
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a746c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0c0d0f;
-  --surface: #141518;
-  --surface-2: #1b1c20;
-  --surface-3: #111215;
-  --border: rgba(255, 255, 255, 0.075);
-  --border-strong: rgba(255, 255, 255, 0.15);
-  --text: #f2efe8;
-  --text-2: #c3c0b7;
-  --muted: #8d8a82;
-  --accent: #f0b56f;
-  --accent-soft: rgba(240, 181, 111, 0.13);
-  --accent-ink: #1a1206;
-  --primary: #f2efe8;
-  --primary-ink: #121316;
-  --ring: #6aa7ee;
-  --crit: #ff7676;
-  --high: #f4a27e;
-  --med: #f2c14e;
-  --low: #7fb4f0;
-  --good: #52c752;
-  --crit-soft: rgba(255, 118, 118, 0.12);
-  --high-soft: rgba(244, 162, 126, 0.12);
-  --med-soft: rgba(242, 193, 78, 0.12);
-  --low-soft: rgba(127, 180, 240, 0.12);
-  --good-soft: rgba(82, 199, 82, 0.12);
-  --series: #3987e5;
-  --series-soft: rgba(57, 135, 229, 0.2);
-  --grid: #24252a;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -16px rgba(0, 0, 0, 0.6);
-  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8a82' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --bg: oklch(14% 0.012 65);
+  --surface: oklch(16.5% 0.012 65);
+  --surface-2: oklch(20% 0.012 65);
+  --surface-3: oklch(15.2% 0.012 65);
+  --border: oklch(28% 0.01 65);
+  --border-strong: oklch(35% 0.01 65);
+  --text: oklch(95% 0.006 70);
+  --text-2: oklch(85% 0.006 70);
+  --muted: oklch(65% 0.01 65);
+  --accent: oklch(72% 0.14 48);
+  --accent-soft: oklch(72% 0.14 48 / 0.14);
+  --accent-ink: oklch(14% 0.012 65);
+  --primary: oklch(95% 0.006 70);
+  --primary-ink: oklch(14% 0.012 65);
+  --ring: oklch(72% 0.1 230);
+  --crit: oklch(70% 0.17 25);
+  --high: oklch(74% 0.13 45);
+  --med: oklch(80% 0.12 85);
+  --low: oklch(74% 0.1 230);
+  --good: oklch(74% 0.13 145);
+  --crit-soft: oklch(70% 0.17 25 / 0.13);
+  --high-soft: oklch(74% 0.13 45 / 0.13);
+  --med-soft: oklch(80% 0.12 85 / 0.13);
+  --low-soft: oklch(74% 0.1 230 / 0.13);
+  --good-soft: oklch(74% 0.13 145 / 0.13);
+  --series: oklch(72% 0.14 48);
+  --series-soft: oklch(72% 0.14 48 / 0.2);
+  --grid: oklch(24% 0.01 65);
+  --shadow: none;
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239a948c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* The site's phosphor terminal theme. */
+:root[data-theme="crt"] {
+  color-scheme: dark;
+  --bg: #0a1108;
+  --surface: #0d160a;
+  --surface-2: #11190d;
+  --surface-3: #0b1309;
+  --border: #1f3a1a;
+  --border-strong: #2a4e23;
+  --text: #c9f5b3;
+  --text-2: #a7e08e;
+  --muted: #5fa84a;
+  --accent: #c9f5b3;
+  --accent-soft: rgba(201, 245, 179, 0.12);
+  --accent-ink: #0a1108;
+  --primary: #c9f5b3;
+  --primary-ink: #0a1108;
+  --ring: #a7e08e;
+  --crit: #ff8a7a;
+  --high: #f2c46d;
+  --med: #e8e07a;
+  --low: #8fd6c9;
+  --good: #c9f5b3;
+  --crit-soft: rgba(255, 138, 122, 0.12);
+  --high-soft: rgba(242, 196, 109, 0.12);
+  --med-soft: rgba(232, 224, 122, 0.12);
+  --low-soft: rgba(143, 214, 201, 0.12);
+  --good-soft: rgba(201, 245, 179, 0.12);
+  --series: #a7e08e;
+  --series-soft: rgba(167, 224, 142, 0.2);
+  --grid: #16260f;
+  --shadow: none;
+  --font-sans: "JetBrains Mono", ui-monospace, monospace;
+  --font-serif: "JetBrains Mono", ui-monospace, monospace;
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235fa84a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+:root[data-theme="crt"] body {
+  text-shadow: 0 0 1.5px rgba(201, 245, 179, 0.45);
 }
 
 @theme inline {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
@@ -116,7 +159,7 @@
     margin: 0;
     min-height: 100dvh;
     font-family: var(--font-sans);
-    font-size: 15px;
+    font-size: 15.5px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -157,15 +200,23 @@
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 18px;
+    border-radius: 14px;
     box-shadow: var(--shadow);
   }
+  /* Mono uppercase labels, as on akhielesh.com. */
   .eyebrow {
-    font-size: 11px;
-    letter-spacing: 0.1em;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--muted);
-    font-weight: 600;
+    font-weight: 500;
+  }
+  /* Serif display type for titles and headline numbers. */
+  .display {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.012em;
   }
   .tabular {
     font-variant-numeric: tabular-nums;

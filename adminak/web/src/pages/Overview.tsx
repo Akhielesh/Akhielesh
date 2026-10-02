@@ -57,7 +57,7 @@ function ConnectCard() {
           <Badge tone="accent" icon={Sparkles}>
             Get started
           </Badge>
-          <h2 className="mt-3 text-[22px] leading-tight font-semibold tracking-tight text-ink sm:text-[26px]">Connect your inbox and Adminak gets to work</h2>
+          <h2 className="display mt-3 text-[30px] leading-tight text-ink sm:text-[36px]">Connect your inbox and Adminak gets to work</h2>
           <p className="mt-2 text-[14.5px] text-ink-2">
             It scans receipts, statements and notices to track every subscription, bill, delivery, trip, interview and security event — then emails you before anything slips.
           </p>
@@ -258,7 +258,7 @@ function LifeSnapshot({ overview }: { overview: OverviewDTO }) {
           <span className="eyebrow">Career</span>
           <Briefcase className="size-4 text-muted" aria-hidden />
         </div>
-        <div className="mt-2 text-[22px] font-semibold text-ink">{c.active} active</div>
+        <div className="display mt-2 text-[28px] leading-none text-ink">{c.active} active</div>
         <div className="mt-1 flex flex-wrap gap-1.5">
           {c.interviewing ? <Badge tone="info">{c.interviewing} interviewing</Badge> : null}
           {c.offers ? <Badge tone="good">{c.offers} offer{c.offers > 1 ? "s" : ""}</Badge> : null}
@@ -270,7 +270,7 @@ function LifeSnapshot({ overview }: { overview: OverviewDTO }) {
           <span className="eyebrow">Deliveries</span>
           <Truck className="size-4 text-muted" aria-hidden />
         </div>
-        <div className="mt-2 text-[22px] font-semibold text-ink">{overview.deliveries.length} in transit</div>
+        <div className="display mt-2 text-[28px] leading-none text-ink">{overview.deliveries.length} in transit</div>
         <div className="mt-1 truncate text-[12.5px] text-muted">{overview.deliveries[0] ? overview.deliveries[0].title : "Nothing on the way"}</div>
       </Link>
       <Link to="/security" className="card block p-4 hover:border-line-strong">
@@ -278,7 +278,7 @@ function LifeSnapshot({ overview }: { overview: OverviewDTO }) {
           <span className="eyebrow">Security</span>
           <ShieldCheck className={cn("size-4", overview.security.openCritical ? "text-crit" : "text-good")} aria-hidden />
         </div>
-        <div className={cn("mt-2 text-[22px] font-semibold", overview.security.openCritical ? "text-crit" : "text-ink")}>
+        <div className={cn("display mt-2 text-[28px] leading-none", overview.security.openCritical ? "text-crit" : "text-ink")}>
           {overview.security.openCritical ? `${overview.security.openCritical} critical` : "Looks good"}
         </div>
         <div className="mt-1 truncate text-[12.5px] text-muted">{overview.security.recent[0] ? `${overview.security.recent[0].title} · ${fmt.ago(overview.security.recent[0].occurredAt)}` : "No recent security events"}</div>
@@ -319,7 +319,7 @@ export function OverviewPage() {
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="eyebrow">{fmt.date(new Date().toISOString(), "long")}</div>
-          <h1 className="mt-1 text-[26px] leading-tight font-semibold tracking-tight text-ink sm:text-[30px]">{greeting(data.name || prefs.name, prefs.tz)}</h1>
+          <h1 className="display mt-1 text-[40px] leading-[1.02] text-ink sm:text-[52px]">{greeting(data.name || prefs.name, prefs.tz)}</h1>
           <p className="mt-1 text-[13.5px] text-muted">
             {data.kpis.emailsAnalyzed
               ? `${data.kpis.emailsAnalyzed.toLocaleString()} emails analyzed · ${data.kpis.emailsToday} in the last day · ${data.sync.activeAccounts} mailbox${data.sync.activeAccounts === 1 ? "" : "es"}`

@@ -322,7 +322,7 @@ function SubscriptionSheet({ id, onClose }: { id: number | null; onClose: () => 
             <div className="flex items-center gap-4">
               <VendorMark vendor={s.vendor ? { ...s.vendor, name: s.name } : null} name={s.name} size="lg" />
               <div className="min-w-0 flex-1">
-                <div className="tabular text-[28px] leading-none font-semibold tracking-tight text-ink">
+                <div className="display tabular text-[36px] leading-none text-ink">
                   {s.amount !== null ? fmt.money(s.amount, s.currency) : "—"}
                   <span className="text-[15px] font-normal text-muted">{cycleShort(s.cycle)}</span>
                 </div>

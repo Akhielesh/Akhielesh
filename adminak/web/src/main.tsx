@@ -6,6 +6,13 @@ import { registerServiceWorker } from "./lib/push";
 import { ToastProvider } from "./components/toast";
 import { App } from "./App";
 import { BASE } from "./lib/base";
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/500.css";
+import "@fontsource/ibm-plex-sans/600.css";
+import "@fontsource/instrument-serif/400.css";
+import "@fontsource/instrument-serif/400-italic.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
 import "./styles.css";
 
 const queryClient = new QueryClient({
