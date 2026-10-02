@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import type { AppContext } from "../context.js";
 import { audit } from "../context.js";
+import { deleteMeta, getMeta, setMeta } from "../db/index.js";
 import { hashPassword, verifyPassword } from "../security/password.js";
 import { generateRecoveryCodes, verifyTotp } from "../security/totp.js";
 import { randomToken, sha256 } from "../security/vault.js";
@@ -41,17 +42,27 @@ export function findUserByEmail(ctx: AppContext, email: string): UserRow | undef
   return ctx.db.prepare("SELECT * FROM users WHERE email = ?").get(email.trim().toLowerCase()) as UserRow | undefined;
 }
 
-/** One-time code printed to the server log; required to claim a fresh instance. */
+const SETUP_CODE_KEY = "setup_code";
+
+/**
+ * One-time code printed to the server log; required to claim a fresh instance. It is kept in the
+ * database until the owner account exists, so restarts and redeploys (and `cli setup-code`, which
+ * runs in its own process) all agree on the same code.
+ */
 export function ensureSetupCode(ctx: AppContext): string | null {
   if (hasUser(ctx)) {
     ctx.runtime.setupCode = null;
+    deleteMeta(ctx.db, SETUP_CODE_KEY);
     return null;
   }
-  if (!ctx.runtime.setupCode) {
+  let code = getMeta(ctx.db, SETUP_CODE_KEY);
+  if (!code) {
     const raw = crypto.randomBytes(6).toString("hex").toUpperCase();
-    ctx.runtime.setupCode = `${raw.slice(0, 4)}-${raw.slice(4, 8)}-${raw.slice(8)}`;
+    code = `${raw.slice(0, 4)}-${raw.slice(4, 8)}-${raw.slice(8)}`;
+    setMeta(ctx.db, SETUP_CODE_KEY, code);
   }
-  return ctx.runtime.setupCode;
+  ctx.runtime.setupCode = code;
+  return code;
 }
 
 export async function createOwner(
@@ -77,6 +88,7 @@ export async function createOwner(
     createChannel(ctx, { type: "email", name: "Personal email", config: { to: notify }, minSeverity: "high" });
   }
   ctx.runtime.setupCode = null;
+  deleteMeta(ctx.db, SETUP_CODE_KEY);
   audit(ctx, "owner.created", input.email);
   return id;
 }

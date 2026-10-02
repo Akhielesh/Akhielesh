@@ -26,7 +26,7 @@ async function main() {
   switch (command) {
     case "setup-code": {
       const code = ensureSetupCode(ctx);
-      console.log(code ? `Setup code: ${code} (valid until the server restarts — prefer reading it from the server log)` : "This instance is already set up.");
+      console.log(code ? `Setup code: ${code} (stays the same across restarts until the owner account is created)` : "This instance is already set up.");
       break;
     }
     case "reset-password": {

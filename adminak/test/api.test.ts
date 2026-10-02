@@ -16,8 +16,9 @@ import type {
 } from "../src/shared/types.js";
 import { dispatchInstant, sendDigest } from "../src/server/notify/dispatcher.js";
 import { refreshBriefingIfStale } from "../src/server/jobs/scheduler.js";
-import { deleteMeta } from "../src/server/db/index.js";
+import { deleteMeta, getMeta } from "../src/server/db/index.js";
 import { totpCode } from "../src/server/security/totp.js";
+import { ensureSetupCode } from "../src/server/services/auth.js";
 import { createHarness, setupOwner } from "./helpers.js";
 
 describe("auth", () => {
@@ -29,7 +30,13 @@ describe("auth", () => {
     expect(bad.status).toBe(403);
     const weak = await h.json("POST", "/api/auth/setup", { setupCode: h.ctx.runtime.setupCode, email: "a@b.co", name: "A", password: "short" });
     expect(weak.status).toBe(422);
+    // The code survives a restart (fresh runtime, same database) until the owner exists.
+    const code = h.ctx.runtime.setupCode;
+    h.ctx.runtime.setupCode = null;
+    expect(ensureSetupCode(h.ctx)).toBe(code);
     await setupOwner(h);
+    expect(getMeta(h.ctx.db, "setup_code")).toBeNull();
+    expect(ensureSetupCode(h.ctx)).toBeNull();
     const after = await h.json<AuthState>("GET", "/api/auth/state");
     expect(after.body.authenticated).toBe(true);
     expect(after.body.user?.email).toBe("owner@example.com");

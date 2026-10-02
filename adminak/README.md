@@ -229,7 +229,7 @@ Recovery uses the server CLI:
 ```bash
 npm run cli -- reset-password   # prompts for a new owner password and signs out all sessions
 npm run cli -- disable-2fa
-npm run cli -- setup-code       # new one-time setup code (before an owner exists)
+npm run cli -- setup-code       # print the one-time setup code (before an owner exists)
 ```
 
 In Docker, run the built CLI instead: `docker compose exec -it adminak node dist/server/cli.js reset-password`.
