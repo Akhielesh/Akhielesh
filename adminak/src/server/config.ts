@@ -44,6 +44,8 @@ const EnvSchema = z.object({
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   DISABLE_SCHEDULER: bool.default(false),
   WEB_DIST: optionalString,
+  BACKUP_URL: optionalString,
+  BACKUP_INTERVAL_SECONDS: z.coerce.number().int().min(10).max(3600).default(60),
 });
 
 export interface AppConfig {
@@ -73,6 +75,8 @@ export interface AppConfig {
   logLevel: "debug" | "info" | "warn" | "error";
   disableScheduler: boolean;
   webDist?: string;
+  /** Where to keep an off-disk copy of the database, for hosts whose disk is wiped on restart (see backup.ts). */
+  backup?: { url: string; intervalSeconds: number };
 }
 
 /**
@@ -142,5 +146,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     logLevel: e.LOG_LEVEL,
     disableScheduler: e.DISABLE_SCHEDULER,
     webDist: e.WEB_DIST,
+    backup: e.BACKUP_URL ? { url: e.BACKUP_URL.replace(/\/+$/, ""), intervalSeconds: e.BACKUP_INTERVAL_SECONDS } : undefined,
   };
 }

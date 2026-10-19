@@ -21,6 +21,8 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@cloudflare/containers": "0.3.7",
+    "@cloudflare/workers-types": "5.20261019.1",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-query": "^5.104.0",
     "@types/better-sqlite3": "^9.6.0",
@@ -43,7 +45,8 @@
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.2",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "wrangler": "4.151.2"
   },
   "description": "Adminak — self-hosted personal intelligence console: scans your inbox, tracks subscriptions, bills, money, career, travel and security, and sends alerts to your personal email.",
   "engines": {
@@ -57,7 +60,7 @@
     "build:web": "vite build",
     "build:server": "tsc -p tsconfig.build.json",
     "start": "node dist/server/main.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p web/tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p web/tsconfig.json --noEmit && tsc -p worker/tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "demo": "tsx src/server/cli.ts demo",

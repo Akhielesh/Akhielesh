@@ -1,0 +1,36 @@
+// Adminak on Cloudflare Containers. Deployed by Workers Builds (root directory: adminak, deploy command: npx wrangler deploy).
+// The Dockerfile next to this file is the image; worker/index.ts starts it and serves the database backup store from R2.
+// The akhielesh.com Worker reaches this one through a service binding, so it has no public workers.dev address.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "adminak",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-13",
+  "workers_dev": false,
+  "preview_urls": false,
+  "upload_source_maps": true,
+  "observability": { "enabled": true },
+
+  // Wakes the container every 10 minutes so Adminak's scheduler keeps running (sleepAfter is 30m).
+  "triggers": { "crons": ["*/10 * * * *"] },
+
+  "vars": {
+    "APP_URL": "https://akhielesh.com/adminak",
+    "SITE_DASHBOARD_URL": "https://akhielesh.com/adminak/site/"
+  },
+
+  // The database lives here between restarts (see src/server/backup.ts). Created once with: wrangler r2 bucket create adminak-backup
+  "r2_buckets": [{ "binding": "BACKUP", "bucket_name": "adminak-backup" }],
+
+  "containers": [
+    {
+      "class_name": "AdminakContainer",
+      "image": "./Dockerfile",
+      "instance_type": "basic",
+      // One console, one database: never run two copies against the same backup.
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": { "bindings": [{ "name": "ADMINAK", "class_name": "AdminakContainer" }] },
+  "exports": { "AdminakContainer": { "type": "durable-object", "storage": "sqlite" } }
+}

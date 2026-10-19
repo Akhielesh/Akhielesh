@@ -37,6 +37,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # Validates wrangler.jsonc (container, Durable Object, R2, cron) and bundles the Worker without building the image.
+      - run: npx wrangler deploy --dry-run --containers-rollout=none --outdir "$RUNNER_TEMP/worker"
 
   docker:
     name: Docker image builds
