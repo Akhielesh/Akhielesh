@@ -10,3 +10,5 @@ output
 .env.*
 !.env.example
 .DS_Store
+worker
+wrangler.jsonc

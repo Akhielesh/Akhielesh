@@ -25,7 +25,8 @@ COPY --from=build /app/dist ./dist
 RUN mkdir -p /data && chown node:node /data
 USER node
 # SQLite database, generated keys and the email outbox live in /data — mount a volume there
-# (docker compose does; on Railway attach a volume at /data). No VOLUME instruction: some
+# (docker compose does; on Railway attach a volume at /data). On Cloudflare Containers the disk is
+# ephemeral, so BACKUP_URL keeps a copy in R2 instead (see README). No VOLUME instruction: some
 # platforms, Railway included, reject it.
 EXPOSE 8787
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

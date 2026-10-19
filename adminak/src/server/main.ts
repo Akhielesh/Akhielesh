@@ -1,12 +1,33 @@
 import { serve } from "@hono/node-server";
+import { RemoteBackup } from "./backup.js";
 import { loadConfig } from "./config.js";
 import { createContext } from "./context.js";
 import { createApp } from "./http/app.js";
 import { startScheduler } from "./jobs/scheduler.js";
+import { createLogger } from "./logger.js";
 import { bootstrapOwner, ensureSetupCode } from "./services/auth.js";
 
 async function main() {
   const config = loadConfig();
+
+  // On a host with a throwaway disk, the database has to come back before anything opens it.
+  // restore() throws when it cannot tell what is stored, so we never start empty over a good copy.
+  const remote = config.backup
+    ? new RemoteBackup({
+        url: config.backup.url,
+        dataDir: config.dataDir,
+        intervalSeconds: config.backup.intervalSeconds,
+        backsUpKey: !config.appSecret,
+        log: createLogger(config.logLevel, "adminak:backup"),
+      })
+    : null;
+  if (remote) {
+    const outcome = await remote.restore();
+    createLogger(config.logLevel, "adminak:backup").info(
+      outcome === "restored" ? "Restored the database from the backup store" : outcome === "fresh" ? "No backup stored yet — starting with an empty database" : "Using the database already on disk",
+    );
+  }
+
   const ctx = createContext(config);
   await bootstrapOwner(ctx);
   const code = ensureSetupCode(ctx);
@@ -23,15 +44,31 @@ async function main() {
   });
 
   const scheduler = config.disableScheduler ? null : startScheduler(ctx);
+  const backups = remote ? remote.start(ctx) : null;
 
   const shutdown = (signal: string) => {
     ctx.log.info(`Received ${signal}, shutting down`);
     scheduler?.stop();
-    server.close(() => {
+    backups?.stop();
+    let finishing = false;
+    const finish = async () => {
+      if (finishing) return;
+      finishing = true;
+      if (backups) {
+        try {
+          await backups.flush();
+          ctx.log.info("Final backup uploaded");
+        } catch (error) {
+          ctx.log.error("Final backup failed", { error: (error as Error).message });
+        }
+      }
       ctx.db.close();
       process.exit(0);
-    });
-    setTimeout(() => process.exit(0), 5000).unref();
+    };
+    server.close(() => void finish());
+    setTimeout(() => void finish(), 5000).unref();
+    // The platform allows a slow stop (Cloudflare gives containers 15 minutes); the final upload must not hang it.
+    setTimeout(() => process.exit(0), backups ? 30_000 : 5000).unref();
   };
   process.on("SIGINT", () => shutdown("SIGINT"));
   process.on("SIGTERM", () => shutdown("SIGTERM"));

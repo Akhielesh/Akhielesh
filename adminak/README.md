@@ -63,6 +63,8 @@ During development, run `npm run dev`. It starts the API with reload on port 878
 
 Adminak is a single Node process plus one data directory. Put it somewhere always-on, so it can keep scanning and send scheduled emails. Use HTTPS, so cookies are `Secure` and push notifications work.
 
+It runs on [Cloudflare Containers](#cloudflare-containers-akhielesh-com) for akhielesh.com. Docker, Railway, Fly and any VPS work too.
+
 ### Docker / Docker Compose
 
 ```bash
@@ -72,6 +74,46 @@ docker compose up -d
 ```
 
 The image runs as a non-root user and keeps all state in `/data`. Compose mounts that as a named volume. It also has a health check on `/healthz`.
+
+### Cloudflare Containers (akhielesh.com)
+
+This is how `akhielesh.com/adminak` runs. The same Docker image runs inside a Cloudflare Container, started and kept awake by a small Worker (`worker/index.ts`, configured in `wrangler.jsonc`).
+
+```
+browser ─▶ akhielesh.com Worker ─(service binding)─▶ adminak Worker ─▶ Container (this image)
+                                                           ▲                 │
+                                                           └── R2 bucket ◀───┘  database + key, via http://backup.internal
+```
+
+**Why there is a backup store.** A container's disk is wiped whenever it restarts, but Adminak keeps its SQLite database and encryption key on disk. With `BACKUP_URL` set (the Worker sets it), Adminak:
+
+- restores the database and `secret.key` from R2 **before** it opens anything, and verifies the copy with SQLite's integrity check;
+- uploads a consistent snapshot about once a minute, only when something changed, and one last time when the container is told to stop;
+- **refuses to start** if it cannot tell whether a copy exists (store unreachable, a 404 that did not come from the store, a damaged copy). It never starts empty over a good copy, and it never uploads until the restore has finished.
+
+The container reaches R2 through the Worker's own binding, at a made-up hostname, so no R2 keys or other credentials exist anywhere. The generated `APP_SECRET` is backed up next to the database. Set your own `APP_SECRET` as a Worker secret instead if you prefer; it is then not stored in R2.
+
+R2 also keeps one dated copy per day (`daily/YYYY-MM-DD.db.gz`) for the last 14 days.
+
+**One-time setup**
+
+1. The R2 bucket: `npx wrangler r2 bucket create adminak-backup` (already done for akhielesh.com).
+2. Cloudflare dashboard → Workers & Pages → Create → Import a repository → `Akhielesh/Akhielesh`. Name it `adminak`, set the **root directory** to `adminak`, and keep the deploy command `npx wrangler deploy`. Workers Builds builds the image from the Dockerfile and rolls it out on every push to `main`.
+3. Settings (optional) are Worker variables and secrets named exactly like the environment variables above: `SMTP_*`, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `NOTIFY_EMAIL`, `ANTHROPIC_API_KEY` and so on. None is required to start.
+4. The `akhielesh.com` Worker already points `/adminak` at this one (service binding `ADMINAK`). Open `https://akhielesh.com/adminak/healthz` to confirm; the first request after a deploy can take a few seconds while the container starts and restores.
+
+Containers need the Workers Paid plan. The `basic` instance runs all day (the cron wakes it every 10 minutes, `sleepAfter` is 30 minutes), which is a few dollars a month on top of the plan. For a console you only open now and then, remove the `triggers.crons` entry in `wrangler.jsonc`: the container then sleeps when idle, and mailbox scans, alerts and reports only run while it is awake.
+
+**Rolling back a bad write.** The latest copy is `adminak.db.gz`; older ones are under `daily/`. Stop the container first (dashboard → Containers → `adminak` → stop). It uploads a final copy as it stops, so replace the object only after it has exited:
+
+```bash
+npx wrangler r2 object get adminak-backup/daily/2026-10-18.db.gz --file old.db.gz --remote
+npx wrangler r2 object put adminak-backup/adminak.db.gz --file old.db.gz --remote
+```
+
+The next request starts a fresh container, which restores that copy.
+
+**Limits.** One instance only (`max_instances: 1`); two containers must never share a backup. A change made in the last minute can be lost if the container is killed instead of stopped. Backup objects are limited to 64 MiB compressed; the System page shows the `backup` job and any error.
 
 ### Railway
 
@@ -115,6 +157,7 @@ All configuration is through environment variables (see [`.env.example`](.env.ex
 | `NOTIFY_EMAIL` | Default address for alerts and reports. |
 | `ANTHROPIC_API_KEY`, `AI_MODEL` | Optional Claude features (default model `claude-opus-5-5`). |
 | `SYNC_INTERVAL_MINUTES` | Default scan interval (also editable in Settings). |
+| `BACKUP_URL`, `BACKUP_INTERVAL_SECONDS` | Off-disk copy of the database for hosts that wipe the disk on restart; see [Cloudflare Containers](#cloudflare-containers-akhielesh-com). Leave unset elsewhere. |
 
 ---
 
