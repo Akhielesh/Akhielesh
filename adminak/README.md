@@ -204,7 +204,7 @@ Capital One has no personal API keys. [Teller](https://teller.io) is a read-only
 
 1. Sign up at teller.io and create an application. Copy the **Application ID**.
 2. Download the app's **certificate** and **private key** from the Teller dashboard.
-3. Set `TELLER_APPLICATION_ID`, `TELLER_ENVIRONMENT=development`, `TELLER_CERTIFICATE` and `TELLER_PRIVATE_KEY` (on Railway, paste the base64 of each PEM). Then redeploy.
+3. Set `TELLER_APPLICATION_ID`, `TELLER_ENVIRONMENT=development`, `TELLER_CERTIFICATE` and `TELLER_PRIVATE_KEY` (on Cloudflare or Railway, the base64 of each PEM is the safest way to paste a multi-line key; on Cloudflare make them secrets). Then redeploy.
 4. Go to **Connections → Add → Capital One**. You sign in to Capital One inside Teller Connect's window. Adminak gets a read-only access token, stores it encrypted, and pulls a year of transactions and current balances.
 
 Banks refresh every 6 hours (configurable under **Notifications → Bank & card alerts**). If a link expires, the connection shows **Reconnect** and you get an alert.

@@ -444,10 +444,10 @@ function TellerSetupHelp({ onBack, onImport }: { onBack: () => void; onImport: (
           In the Teller dashboard, download the <strong className="text-ink">certificate</strong> and <strong className="text-ink">private key</strong> (certificate.pem, private_key.pem).
         </li>
         <li>
-          In Railway → adminak → Variables, add <code className="rounded bg-surface-2 px-1">TELLER_APPLICATION_ID</code>, <code className="rounded bg-surface-2 px-1">TELLER_ENVIRONMENT=development</code>,{" "}
+          In your host's settings (on akhielesh.com: Cloudflare → Workers &amp; Pages → adminak → Settings → Variables and Secrets), add <code className="rounded bg-surface-2 px-1">TELLER_APPLICATION_ID</code>, <code className="rounded bg-surface-2 px-1">TELLER_ENVIRONMENT=development</code>,{" "}
           <code className="rounded bg-surface-2 px-1">TELLER_CERTIFICATE</code> and <code className="rounded bg-surface-2 px-1">TELLER_PRIVATE_KEY</code> (paste each PEM, or its base64).
         </li>
-        <li>After the redeploy, come back here and tap Capital One. Teller's development tier covers up to 100 live connections at no cost.</li>
+        <li>Once it has restarted, come back here and tap Capital One. Teller's development tier covers up to 100 live connections at no cost.</li>
       </ol>
       <p className="text-[13px] text-muted">Until then, a statement file gets the same analysis — just without automatic refresh.</p>
       <div className="flex gap-2">
